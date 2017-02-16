@@ -740,7 +740,7 @@ class Manager(object):
             result = self.__gmaps_client.distance_matrix(origin, dest, mode='walking', units=config['UNITS'])
             result = result.get('rows')[0].get('elements')[0]
             data['walk_dist'] = result.get('distance').get('text').encode('utf-8')
-            data['walk_time'] = result.get('duration').get('text').encode('utf-8')
+            data['walk_time'] = result.get('duration').get('text').encode('utf-8').replace(' hours', 'h').replace(' hour', 'h').replace(' mins', 'm').replace(' min', 'm')
         except Exception as e:
             log.error("Encountered error while getting walking data ({}: {})".format(type(e).__name__, e))
             log.debug("Stack trace: \n {}".format(traceback.format_exc()))
@@ -758,7 +758,7 @@ class Manager(object):
             result = self.__gmaps_client.distance_matrix(origin, dest, mode='bicycling', units=config['UNITS'])
             result = result.get('rows')[0].get('elements')[0]
             data['bike_dist'] = result.get('distance').get('text').encode('utf-8')
-            data['bike_time'] = result.get('duration').get('text').encode('utf-8')
+            data['bike_time'] = result.get('duration').get('text').encode('utf-8').replace(' hours', 'h').replace(' hour', 'h').replace(' mins', 'm').replace(' min', 'm')
         except Exception as e:
             log.error("Encountered error while getting biking data ({}: {})".format(type(e).__name__, e))
             log.debug("Stack trace: \n {}".format(traceback.format_exc()))
@@ -776,7 +776,7 @@ class Manager(object):
             result = self.__gmaps_client.distance_matrix(origin, dest, mode='driving', units=config['UNITS'])
             result = result.get('rows')[0].get('elements')[0]
             data['drive_dist'] = result.get('distance').get('text').encode('utf-8')
-            data['drive_time'] =  result.get('duration').get('text').encode('utf-8')
+            data['drive_time'] =  result.get('duration').get('text').encode('utf-8').replace(' hours', 'h').replace(' hour', 'h').replace(' mins', 'm').replace(' min', 'm')
         except Exception as e:
             log.error("Encountered error while getting driving data ({}: {})".format(type(e).__name__, e))
             log.debug("Stack trace: \n {}".format(traceback.format_exc()))
