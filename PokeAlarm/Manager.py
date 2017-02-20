@@ -166,7 +166,7 @@ class Manager(object):
         if pkmn_id not in self.__pokemon_filter:
             if config['QUIET'] is False:
                 log.info("{} ignored: filter was not set".format(name))
-                return
+            return
 
         # Check the time remaining
         seconds_left = (pkmn['disappear_time'] - datetime.utcnow()).total_seconds()
@@ -776,7 +776,7 @@ class Manager(object):
             result = self.__gmaps_client.distance_matrix(origin, dest, mode='driving', units=config['UNITS'])
             result = result.get('rows')[0].get('elements')[0]
             data['drive_dist'] = result.get('distance').get('text').encode('utf-8').replace(' ', '')
-            data['drive_time'] =  result.get('duration').get('text').encode('utf-8').replace(' hours', 'h').replace(' hour', 'h').replace(' mins', 'm').replace(' min', 'm')
+            data['drive_time'] = result.get('duration').get('text').encode('utf-8').replace(' hours', 'h').replace(' hour', 'h').replace(' mins', 'm').replace(' min', 'm')
         except Exception as e:
             log.error("Encountered error while getting driving data ({}: {})".format(type(e).__name__, e))
             log.debug("Stack trace: \n {}".format(traceback.format_exc()))
