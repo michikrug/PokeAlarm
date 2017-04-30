@@ -93,14 +93,14 @@ class TelegramAlarm(Alarm):
         if sticker_id:
             self.send_sticker(alert['chat_id'], sticker_id)
 
+        if alert['location']:
+            self.send_location(alert, info)
+
         if alert['venue']:
             self.send_venue(alert, info)
         else:
             text = '<b>' + replace(alert['title'], info) + '</b> \n' + replace(alert['body'], info)
             self.send_message(alert['chat_id'], text)
-
-        if alert['location']:
-            self.send_location(alert, info)
 
     # Trigger an alert based on Pokemon info
     def pokemon_alert(self, pokemon_info):
