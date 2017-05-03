@@ -48,7 +48,7 @@ def load_pokemon_section(settings):
         "min_sta": 0, "max_sta": 15,
         "quick_move": None, "charge_move": None, "moveset": None,
         "size": None,
-        "gender": None,
+        "gender": None
     }, 'default')
     default = default_filt.to_dict()
     # Add the filters to the settings
