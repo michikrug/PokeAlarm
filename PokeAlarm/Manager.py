@@ -372,17 +372,17 @@ class Manager(object):
 
 
             # Check the Level of the Pokemon
-            if level != '?':
-                if not filt.check_level(level):
-                    if self.__quiet is False:
-                        log.info("{} rejected: Level ({}) not in range {} to {} - (F #{})".format(
-                            name, level, filt.min_level, filt.max_level, filt_ct))
-                    continue
-            else:
-                if filt.ignore_missing is True:
-                    log.info("{} rejected: Level information was missing - (F #{})".format(name, filt_ct))
-                    continue
-                log.debug("Pokemon 'level' was not checked because it was missing.")
+            #if level != '?':
+            #    if not filt.check_level(level):
+            #        if self.__quiet is False:
+            #            log.info("{} rejected: Level ({}) not in range {} to {} - (F #{})".format(
+            #                name, level, filt.min_level, filt.max_level, filt_ct))
+            #        continue
+            #else:
+            #    if filt.ignore_missing is True:
+            #        log.info("{} rejected: Level information was missing - (F #{})".format(name, filt_ct))
+            #        continue
+            #    log.debug("Pokemon 'level' was not checked because it was missing.")
 
             # Check the IV percent of the Pokemon
             if iv != '?':
