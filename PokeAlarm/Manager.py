@@ -515,7 +515,7 @@ class Manager(object):
         time_str = get_time_as_str(pkmn['disappear_time'], self.__timezone)
         pkmn.update({
             'pkmn': name,
-            "dist": get_dist_as_str(dist) if dist != 'unkn' else 'unkn',
+            'dist': get_dist_as_str(dist) if dist != 'unkn' else 'unkn',
             'time_left': time_str[0],
             '12h_time': time_str[1],
             '24h_time': time_str[2],

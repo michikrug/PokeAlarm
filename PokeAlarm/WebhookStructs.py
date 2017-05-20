@@ -117,10 +117,10 @@ class RocketMap:
         log.debug("Converting to gym: \n {}".format(data))
         gym = {
             'type': "gym",
-            'id': data.get('gym_id',  data.get('id')),
-            "team_id": int(data.get('team_id',  data.get('team'))),
-            "points": str(data.get('gym_points')),
-            "guard_pkmn_id": data.get('guard_pokemon_id'),
+            'id': data.get('gym_id', data.get('id')),
+            'team_id': int(data.get('team_id', data.get('team'))),
+            'points': str(data.get('gym_points')),
+            'guard_pkmn_id': data.get('guard_pokemon_id'),
             'lat': float(data['latitude']),
             'lng': float(data['longitude'])
         }
