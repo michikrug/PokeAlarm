@@ -4,7 +4,7 @@ import requests
 # 3rd Party Imports
 # Local Imports
 from ..Alarm import Alarm
-from ..Utils import parse_boolean, get_static_map_url, reject_leftover_parameters, require_and_remove_key
+from ..Utils import parse_boolean, get_static_map_url, reject_leftover_parameters, require_and_remove_key, get_color
 
 log = logging.getLogger('Discord')
 try_sending = Alarm.try_sending
@@ -27,7 +27,8 @@ class DiscordAlarm(Alarm):
             'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/<pkmn_id>.png",
             'title': "A wild <pkmn> has appeared!",
             'url': "<gmaps>",
-            'body': "Available until <24h_time> (<time_left>)."
+            'body': "Available until <24h_time> (<time_left>).",
+            'color': "<iv_0>"
         },
         'pokestop': {
             'username': "Pokestop",
@@ -36,7 +37,8 @@ class DiscordAlarm(Alarm):
             'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/pokestop.png",
             'title': "Someone has placed a lure on a Pokestop!",
             'url': "<gmaps>",
-            'body': "Lure will expire at <24h_time> (<time_left>)."
+            'body': "Lure will expire at <24h_time> (<time_left>).",
+            'color': "<time_left>"
         },
         'gym': {
             'username': "<new_team> Gym Alerts",
@@ -45,7 +47,28 @@ class DiscordAlarm(Alarm):
             'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<team_id>.png",
             'title': "A Team <old_team> gym has fallen!",
             'url': "<gmaps>",
-            'body': "It is now controlled by <new_team>."
+            'body': "It is now controlled by <new_team>.",
+            'color': "<new_team>"
+        },
+        'raid': {
+            'username': "Raid",
+            'content': "",
+            'icon_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/<pkmn_id>.png",
+            'avatar_url': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
+            'title': "Level <raid_level> Raid is available against <pkmn>!",
+            'url': "<gmaps>",
+            'body': "The raid is available until <24h_time> (<time_left>).",
+			'color': "<time_left>"
+        },
+        'egg': {
+            'username': "Egg",
+            'content': "",
+            'icon_url': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
+            'avatar_url': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
+            'title': "Raid is incoming!",
+            'url': "<gmaps>",
+            'body': "A level <raid_level> raid will hatch <begin_24h_time> (<begin_time_left>).",
+			'color': "<time_left>"
         }
     }
 
@@ -66,6 +89,8 @@ class DiscordAlarm(Alarm):
         self.__pokemon = self.create_alert_settings(settings.pop('pokemon', {}), self._defaults['pokemon'])
         self.__pokestop = self.create_alert_settings(settings.pop('pokestop', {}), self._defaults['pokestop'])
         self.__gym = self.create_alert_settings(settings.pop('gym', {}), self._defaults['gym'])
+        self.__raid = self.create_alert_settings(settings.pop('raid', {}), self._defaults['raid'])
+        self.__egg = self.create_alert_settings(settings.pop('egg', {}), self._defaults['egg'])
 
         # Warn user about leftover parameters
         reject_leftover_parameters(settings, "'Alarm level in Discord alarm.")
@@ -101,6 +126,7 @@ class DiscordAlarm(Alarm):
             'title': settings.pop('title', default['title']),
             'url': settings.pop('url', default['url']),
             'body': settings.pop('body', default['body']),
+            'color': default['color'],
             'map': get_static_map_url(settings.pop('map', self.__map), self.__static_map_key)
         }
 
@@ -111,15 +137,16 @@ class DiscordAlarm(Alarm):
     def send_alert(self, alert, info):
         log.debug("Attempting to send notification to Discord.")
         payload = {
-            'username': replace(alert['username'], info)[:32],  # Username must be 32 characters or less
+            'username': replace(alert['username'], info),
             'content': replace(alert['content'], info),
             'avatar_url':  replace(alert['avatar_url'], info),
         }
-        if alert['disable_embed'] is False:
+        if not alert['disable_embed']:
             payload['embeds'] = [{
                 'title': replace(alert['title'], info),
                 'url': replace(alert['url'], info),
                 'description': replace(alert['body'], info),
+                'color': get_color(replace(alert['color'], info)),
                 'thumbnail': {'url': replace(alert['icon_url'], info)}
             }]
             if alert['map'] is not None:
@@ -144,6 +171,13 @@ class DiscordAlarm(Alarm):
     def gym_alert(self, gym_info):
         log.debug("Gym notification triggered.")
         self.send_alert(self.__gym, gym_info)
+
+    # Trigger an alert when a raid egg has spawned (UPCOMING raid event)
+    def raid_egg_alert(self, raid_info):
+        self.send_alert(self.__egg, raid_info)
+
+    def raid_alert(self, raid_info):
+        self.send_alert(self.__raid, raid_info)
 
     # Send a payload to the webhook url
     def send_webhook(self, url, payload):

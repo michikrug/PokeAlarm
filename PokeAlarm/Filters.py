@@ -34,14 +34,14 @@ def create_multi_filter(location, FilterType, settings, default):
         sys.exit(1)
 
 
-def load_pokemon_section(settings):
+def load_pokemon_filters(settings):
     log.info("Setting Pokemon filters...")
     pokemon = { "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False)}
     # Set the defaults for "True"
     default_filt = PokemonFilter(settings.pop('default', {}), {
         "ignore_missing": False,
         "min_dist": 0.0, "max_dist": float('inf'),
-        "min_cp": 0, "max_cp": 4760,
+        "min_cp": 0, "max_cp": 999999,
         "min_level": 0, "max_level": 40,
         "min_iv": 0.0, "max_iv": 100.0,
         "min_atk": 0, "max_atk": 15,
@@ -61,12 +61,21 @@ def load_pokemon_section(settings):
             log.error("Unable to find pokemon named '{}'...".format(name))
             log.error("Please see PokeAlarm documentation for proper Filter file formatting.")
             sys.exit(1)
-        if pkmn_id in pokemon:
+        if pkmn_id in filters:
             log.error("Multiple entries detected for Pokemon #{}. Please remove any extra names.")
             sys.exit(1)
         f = create_multi_filter(name, PokemonFilter, settings[name], default)
         if f is not None:
             filters[pkmn_id] = f
+
+    return filters
+
+
+def load_pokemon_section(settings):
+    log.info("Setting Pokemon filters...")
+    pokemon = { "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False)}
+
+    filters = load_pokemon_filters(settings)
     pokemon['filters'] = filters
     # Output filters
     log.debug(filters)
@@ -98,6 +107,28 @@ def load_pokestop_section(settings):
     return stop
 
 
+def load_raid_section(settings):
+    log.info("Setting up Raid Filters...")
+    raid = {
+        "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False)
+    }
+
+    raid_filters = settings.pop('filters', {})
+
+    raid['min_level'] = int(raid_filters.pop('min_level', 0) or 0)
+    raid['max_level'] = int(raid_filters.pop('max_level', 10) or 10)
+    raid['ignore_eggs'] = bool(parse_boolean(raid_filters.pop('ignore_eggs', None)) or False)
+
+    log.debug("Report raids between level {} and {}, ignore eggs? {}"
+              .format(raid['min_level'], raid['max_level'], raid['ignore_eggs']))
+
+    # load any pokemon filters
+    filters = load_pokemon_filters(settings)
+    raid['filters'] = filters
+
+    return raid
+
+
 def load_gym_section(settings):
     log.info("Setting Gym filters...")
     # Set the defaults for "True"
@@ -111,6 +142,7 @@ def load_gym_section(settings):
     gym = {
         "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False),
         "ignore_neutral": bool(parse_boolean(settings.pop('ignore_neutral', None)) or False),
+        "ignore_no_name": bool(parse_boolean(settings.pop('ignore_no_name', None)) or True),
         "filters": create_multi_filter('Gym --> filters', GymFilter,
                                        settings.pop('filters', "False"), default)
     }
