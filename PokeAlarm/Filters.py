@@ -108,7 +108,7 @@ def load_pokestop_section(settings):
 
 
 def load_raid_section(settings):
-    log.info("Setting up Raid Filters...")
+    log.info("Setting Raid Filters...")
     raid = {
         "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False)
     }
