@@ -716,18 +716,6 @@ class Manager(object):
             log.info("Gym rejected: not inside geofence(s)")
             return
 
-        # Check if in geofences
-        if len(self.__geofences) > 0:
-            inside = False
-            for gf in self.__geofences:
-                inside |= gf.contains(lat, lng)
-            if inside is False:
-                if self.__quiet is False:
-                    log.info("Gym update ignored: located outside geofences.")
-                return
-        else:
-            log.debug("Gym inside geofences was not checked because no geofences were set.")
-
         gym.update({
             "name": self.__gym_info[gym_id]['name'],
             "description": self.__gym_info[gym_id]['description'],
@@ -781,17 +769,22 @@ class Manager(object):
         lat, lng = raid['lat'], raid['lng']
         dist = get_earth_dist([lat, lng], self.__latlng)
 
-        # Check if in geofences
-        if len(self.__geofences) > 0:
-            inside = False
-            for gf in self.__geofences:
-                inside |= gf.contains(lat, lng)
-            if inside is False:
+        min_dist, max_dist = self.__raid_settings['min_dist'], self.__raid_settings['max_dist']
+        # Check the distance from the set location
+        if dist != 'unkn':
+            if not (min_dist <= dist <= max_dist):
                 if self.__quiet is False:
-                    log.info("Raid update ignored: located outside geofences.")
+                    log.info("Raid rejected: distance ({:.2f}) was not in range".format(dist) +
+                             " {:.2f} to {:.2f}".format(min_dist, max_dist))
                 return
         else:
-            log.debug("Raid inside geofences was not checked because no geofences were set.")
+            log.debug("Raid dist was not checked because the manager has no location set.")
+
+        # Check the geofences
+        raid['geofence'] = self.check_geofences('Raid', lat, lng)
+        if len(self.__geofences) > 0 and raid['geofence'] == 'unknown':
+            log.info("Raid rejected: not inside geofence(s)")
+            return
 
         quick_id = raid['quick_id']
         charge_id = raid['charge_id']
@@ -821,7 +814,7 @@ class Manager(object):
                 return
 
         # check if the level is in the filter range or if we are ignoring eggs
-        passed = self.check_raid_filter(self.__raid_settings,raid)
+        passed = self.check_raid_filter(self.__raid_settings, raid)
 
         if not passed:
             log.debug("Raid {} did not pass filter check".format(id_))

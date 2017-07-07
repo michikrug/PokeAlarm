@@ -114,8 +114,10 @@ def load_raid_section(settings):
 
     raid_filters = settings.pop('filters', {})
 
-    raid['min_level'] = int(raid_filters.pop('min_level', 0) or 0)
-    raid['max_level'] = int(raid_filters.pop('max_level', 10) or 10)
+    raid['min_level'] = int(raid_filters.pop('min_level', 1) or 1)
+    raid['max_level'] = int(raid_filters.pop('max_level', 5) or 5)
+    raid['min_dist'] = float(raid_filters.pop('min_dist', 0.0) or 0.0)
+    raid['max_dist'] = float(raid_filters.pop('max_dist', float('inf')) or float('inf'))
     raid['ignore_eggs'] = bool(parse_boolean(raid_filters.pop('ignore_eggs', None)) or False)
 
     # load any pokemon filters
