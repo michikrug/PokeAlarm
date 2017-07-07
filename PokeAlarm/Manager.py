@@ -766,6 +766,13 @@ class Manager(object):
 
         self.__raid_hist[id_] = dict(expire_time=raid_end, pkmn_id=pkmn_id)
 
+        # check if the level is in the filter range or if we are ignoring eggs
+        passed = self.check_raid_filter(self.__raid_settings, raid)
+
+        if not passed:
+            log.debug("Raid {} did not pass filter check".format(id_))
+            return
+
         lat, lng = raid['lat'], raid['lng']
         dist = get_earth_dist([lat, lng], self.__latlng)
 
@@ -812,13 +819,6 @@ class Manager(object):
             if not passed:
                 log.debug("Raid {} did not pass pokemon check".format(id_))
                 return
-
-        # check if the level is in the filter range or if we are ignoring eggs
-        passed = self.check_raid_filter(self.__raid_settings, raid)
-
-        if not passed:
-            log.debug("Raid {} did not pass filter check".format(id_))
-            return
 
         self.add_optional_travel_arguments(raid)
 
