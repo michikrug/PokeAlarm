@@ -35,8 +35,6 @@ def create_multi_filter(location, FilterType, settings, default):
 
 
 def load_pokemon_filters(settings):
-    log.info("Setting Pokemon filters...")
-    pokemon = { "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False)}
     # Set the defaults for "True"
     default_filt = PokemonFilter(settings.pop('default', {}), {
         "ignore_missing": False,
@@ -53,6 +51,7 @@ def load_pokemon_filters(settings):
         "form": None
     }, 'default')
     default = default_filt.to_dict()
+
     # Add the filters to the settings
     filters = {}
     for name in settings:
@@ -144,7 +143,6 @@ def load_gym_section(settings):
     gym = {
         "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False),
         "ignore_neutral": bool(parse_boolean(settings.pop('ignore_neutral', None)) or False),
-        "ignore_no_name": bool(parse_boolean(settings.pop('ignore_no_name', None)) or True),
         "filters": create_multi_filter('Gym --> filters', GymFilter,
                                        settings.pop('filters', "False"), default)
     }

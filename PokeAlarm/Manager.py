@@ -15,7 +15,7 @@ import googlemaps
 from . import config
 from Filters import Geofence, load_pokemon_section, load_pokestop_section, load_gym_section, load_raid_section
 from Utils import get_cardinal_dir, get_dist_as_str, get_earth_dist, get_path, get_time_as_str, \
-    require_and_remove_key, parse_boolean, contains_arg, get_leader
+    require_and_remove_key, parse_boolean, contains_arg
 log = logging.getLogger('Manager')
 
 
@@ -36,7 +36,7 @@ class Manager(object):
 
         # Setup the language-specific stuff
         self.__locale = locale
-        self.__pokemon_name, self.__move_name, self.__team_name = {}, {}, {}
+        self.__pokemon_name, self.__move_name, self.__team_name, self.__leader = {}, {}, {},  {}
         self.update_locales()
 
         self.__units = units  # type of unit used for distances
@@ -49,6 +49,7 @@ class Manager(object):
         # Load and Setup the Pokemon Filters
         self.__pokemon_settings, self.__pokestop_settings, self.__gym_settings, self.__raid_settings = {}, {}, {}, {}
         self.__pokemon_hist, self.__pokestop_hist, self.__gym_hist, self.__raid_hist = {}, {}, {}, {}
+        self.__gym_info = {}
         self.load_filter_file(get_path(filter_file))
 
         # Create the Geofences to filter with from given file
@@ -304,7 +305,7 @@ class Manager(object):
                 del dict_[id_]
 
     # Check if a given pokemon is active on a filter
-    def check_pokemon_filter(self, filters, attack, defense, stamina, quick_id, charge_id, cp, dist, gender, form_id, iv,
+    def check_pokemon_filter(self, filters, attack, defense, stamina, quick_id, charge_id, cp, dist, form_id, gender, iv,
                              level, name, size):
         passed = False
 
@@ -388,7 +389,7 @@ class Manager(object):
 
             # Check the Stamina IV of the Pokemon
             if stamina is not None and stamina != 'unkn' and stamina != '?':
-               if not filt.check_sta(stamina):
+                if not filt.check_sta(stamina):
                     if self.__quiet is False:
                         log.info("{} rejected: Stamina IV ({}) not in range {} to {} - (F #{}).".format(
                             name, defense, filt.min_sta, filt.max_sta, filt_ct))
@@ -460,7 +461,7 @@ class Manager(object):
                 log.debug("Pokemon 'gender' was not checked because it was missing.")
 
             # Check for a valid form
-            if form_id != '?':
+            if form_id is not None and form_id != 'unkn' and form_id != '?':
                 if not filt.check_form(form_id):
                     if self.__quiet is False:
                         log.info("{} rejected: Form ({}) was not correct - (F #{})".format(name, form_id, filt_ct))
@@ -475,7 +476,7 @@ class Manager(object):
 
     # Process new Pokemon data and decide if a notification needs to be sent
     def process_pokemon(self, pkmn):
-       # Make sure that pokemon are enabled
+        # Make sure that pokemon are enabled
         if self.__pokemon_settings['enabled'] is False:
             log.debug("Pokemon ignored: pokemon notifications are disabled.")
             return
@@ -521,9 +522,8 @@ class Manager(object):
         form_id = pkmn['form_id']
 
         filters = self.__pokemon_settings['filters'][pkmn_id]
-        passed = self.check_pokemon_filter(filters, atk, def_, sta, quick_id, charge_id, cp, dist, gender, form_id, iv,
+        passed = self.check_pokemon_filter(filters, atk, def_, sta, quick_id, charge_id, cp, dist, form_id, gender, iv,
                                            level, name, size)
-
         # If we didn't pass any filters
         if not passed:
             return
@@ -647,6 +647,14 @@ class Manager(object):
         to_team_id = gym['team_id']
         from_team_id = self.__gym_hist.get(gym_id)
 
+        # Update Gym details (if they exist)
+        if gym_id not in self.__gym_info or gym['name'] != 'unknown':
+            self.__gym_info[gym_id] = {
+                "name": gym['name'],
+                "description": gym['description'],
+                "url": gym['url']
+            }
+
         # Doesn't look like anything to me
         if to_team_id == from_team_id:
             log.debug("Gym ignored: no change detected")
@@ -654,10 +662,6 @@ class Manager(object):
         # Ignore changes to neutral
         if self.__gym_settings['ignore_neutral'] and to_team_id == 0:
             log.debug("Gym update ignored: changed to neutral")
-            return
-        # Ignore changes without names
-        if self.__gym_settings['ignore_no_name'] and gym['name'] == 'unknown':
-            log.debug("Gym update ignored: Name information missing")
             return
         # Update gym's last known team
         self.__gym_hist[gym_id] = to_team_id
@@ -725,14 +729,17 @@ class Manager(object):
             log.debug("Gym inside geofences was not checked because no geofences were set.")
 
         gym.update({
+            "name": self.__gym_info[gym_id]['name'],
+            "description": self.__gym_info[gym_id]['description'],
+            "url": self.__gym_info[gym_id]['url'],
             "dist": get_dist_as_str(dist),
             'dir': get_cardinal_dir([lat, lng], self.__latlng),
             'new_team': cur_team,
             'new_team_id': "team{}".format(to_team_id),
             'old_team': old_team,
             'old_team_id': from_team_id,
-            'new_team_leader': get_leader(to_team_id),
-            'old_team_leader': get_leader(from_team_id)
+            'new_team_leader': self.__leader[to_team_id],
+            'old_team_leader': self.__leader[from_team_id]
         })
         self.add_optional_travel_arguments(gym)
 
@@ -768,12 +775,11 @@ class Manager(object):
                     if self.__quiet is False:
                         log.debug("Raid {} was skipped because it was previously processed.".format(id))
                     return
+
         self.__raid_hist[id_] = dict(expire_time=raid_end, pkmn_id=pkmn_id)
-        pkmn_id = raid['pkmn_id']
+
         lat, lng = raid['lat'], raid['lng']
         dist = get_earth_dist([lat, lng], self.__latlng)
-
-        self.add_optional_travel_arguments(raid)
 
         # Check if in geofences
         if len(self.__geofences) > 0:
@@ -821,6 +827,8 @@ class Manager(object):
             log.debug("Raid {} did not pass filter check".format(id_))
             return
 
+        self.add_optional_travel_arguments(raid)
+
         if self.__quiet is False:
             log.info("Raid ({}) notification has been triggered!".format(id_))
 
@@ -852,8 +860,6 @@ class Manager(object):
 
         for thread in threads:
             thread.join()
-
-
 
     # Check to see if a notification is within the given range
     def check_geofences(self, name, lat, lng):
@@ -898,6 +904,11 @@ class Manager(object):
             teams = json.loads(f.read())
             for team_id, value in teams.iteritems():
                 self.__team_name[int(team_id)] = value
+        # Update leader names
+        with open(os.path.join(locale_path, 'leaders.json'), 'r') as f:
+            leaders = json.loads(f.read())
+            for team_id, value in leaders.iteritems():
+                self.__leader[int(team_id)] = value
 
     ####################################################################################################################
 

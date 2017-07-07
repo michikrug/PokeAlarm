@@ -129,6 +129,8 @@ class RocketMap:
             raid_begin = datetime.utcfromtimestamp(data['raid_begin'])
         elif 'battle' in data:
             raid_begin = datetime.utcfromtimestamp(data['battle'])
+        elif 'start' in data:
+            raid_begin = datetime.utcfromtimestamp(data['start'])
 
         if 'raid_end' in data:  # monocle
             raid_end = datetime.utcfromtimestamp(data['raid_end'])
@@ -139,7 +141,6 @@ class RocketMap:
             raid_seed = data.get('raid_seed')
         else:
             raid_seed = data.get('gym_id')  # RM sends the gym id
-
 
         raid = {
             'type': 'raid',

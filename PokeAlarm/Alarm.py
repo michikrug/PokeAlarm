@@ -59,16 +59,15 @@ class Alarm(object):
         raise NotImplementedError("Raid Egg is not implemented!")
 
     # Trigger an alert when a raid egg is HATCHED (active raid)
-
     def raid_alert(self, pokeraid_info):
         raise NotImplementedError('Raid Alert is not implemented.')
-
 
     # Return a version of the string with the correct substitutions made
     @staticmethod
     def replace(string, pkinfo):
         if string is None:
-           return None
+            return None
+
         s = string.encode('utf-8')
         for key in pkinfo:
             s = s.replace("<{}>".format(key), str(pkinfo[key]))

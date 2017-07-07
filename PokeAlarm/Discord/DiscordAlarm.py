@@ -4,7 +4,7 @@ import requests
 # 3rd Party Imports
 # Local Imports
 from ..Alarm import Alarm
-from ..Utils import parse_boolean, get_static_map_url, reject_leftover_parameters, require_and_remove_key, get_color
+from ..Utils import parse_boolean, get_static_map_url, reject_leftover_parameters, require_and_remove_key
 
 log = logging.getLogger('Discord')
 try_sending = Alarm.try_sending
@@ -27,8 +27,7 @@ class DiscordAlarm(Alarm):
             'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/<pkmn_id>.png",
             'title': "A wild <pkmn> has appeared!",
             'url': "<gmaps>",
-            'body': "Available until <24h_time> (<time_left>).",
-            'color': "<iv_0>"
+            'body': "Available until <24h_time> (<time_left>)."
         },
         'pokestop': {
             'username': "Pokestop",
@@ -37,8 +36,7 @@ class DiscordAlarm(Alarm):
             'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/pokestop.png",
             'title': "Someone has placed a lure on a Pokestop!",
             'url': "<gmaps>",
-            'body': "Lure will expire at <24h_time> (<time_left>).",
-            'color': "<time_left>"
+            'body': "Lure will expire at <24h_time> (<time_left>)."
         },
         'gym': {
             'username': "<new_team> Gym Alerts",
@@ -47,8 +45,7 @@ class DiscordAlarm(Alarm):
             'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<team_id>.png",
             'title': "A Team <old_team> gym has fallen!",
             'url': "<gmaps>",
-            'body': "It is now controlled by <new_team>.",
-            'color': "<new_team>"
+            'body': "It is now controlled by <new_team>."
         },
         'raid': {
             'username': "Raid",
@@ -57,8 +54,7 @@ class DiscordAlarm(Alarm):
             'avatar_url': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
             'title': "Level <raid_level> Raid is available against <pkmn>!",
             'url': "<gmaps>",
-            'body': "The raid is available until <24h_time> (<time_left>).",
-			'color': "<time_left>"
+            'body': "The raid is available until <24h_time> (<time_left>)."
         },
         'egg': {
             'username': "Egg",
@@ -67,8 +63,7 @@ class DiscordAlarm(Alarm):
             'avatar_url': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
             'title': "Raid is incoming!",
             'url': "<gmaps>",
-            'body': "A level <raid_level> raid will hatch <begin_24h_time> (<begin_time_left>).",
-			'color': "<time_left>"
+            'body': "A level <raid_level> raid will hatch <begin_24h_time> (<begin_time_left>)."
         }
     }
 
@@ -126,7 +121,6 @@ class DiscordAlarm(Alarm):
             'title': settings.pop('title', default['title']),
             'url': settings.pop('url', default['url']),
             'body': settings.pop('body', default['body']),
-            'color': default['color'],
             'map': get_static_map_url(settings.pop('map', self.__map), self.__static_map_key)
         }
 
@@ -137,7 +131,7 @@ class DiscordAlarm(Alarm):
     def send_alert(self, alert, info):
         log.debug("Attempting to send notification to Discord.")
         payload = {
-            'username': replace(alert['username'], info),
+            'username': replace(alert['username'], info)[:32],  # Username must be 32 characters or less
             'content': replace(alert['content'], info),
             'avatar_url':  replace(alert['avatar_url'], info),
         }
@@ -146,7 +140,6 @@ class DiscordAlarm(Alarm):
                 'title': replace(alert['title'], info),
                 'url': replace(alert['url'], info),
                 'description': replace(alert['body'], info),
-                'color': get_color(replace(alert['color'], info)),
                 'thumbnail': {'url': replace(alert['icon_url'], info)}
             }]
             if alert['map'] is not None:

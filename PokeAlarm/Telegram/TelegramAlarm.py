@@ -20,7 +20,6 @@ replace = Alarm.replace
 
 
 class TelegramAlarm(Alarm):
-
     _defaults = {
         'pokemon': {
             # 'chat_id': If no default, required
@@ -139,8 +138,8 @@ class TelegramAlarm(Alarm):
 
     # Trigger an alert based on Raid info
     def raid_alert(self, raid_info):
-        if self.__raid['stickers']:
-            self.send_alert(self.__raid, raid_info, sticker_list.get(raid_info['pkmn_id']))
+        if self.__raid['stickers'] and raid_info['pkmn_id'] > 0:
+            self.send_alert(self.__raid, raid_info, sticker_list.get(str(raid_info['pkmn_id'])))
         else:
             self.send_alert(self.__raid, raid_info)
 
