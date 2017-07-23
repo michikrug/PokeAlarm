@@ -21,6 +21,7 @@ replace = Alarm.replace
 
 class FacebookPageAlarm(Alarm):
 
+
     _defaults = {
         'pokemon': {
             'message': "A wild <pkmn> has appeared!",
@@ -40,7 +41,7 @@ class FacebookPageAlarm(Alarm):
         },
         'gym': {
             'message': "A Team <old_team> gym has fallen!",
-            'image': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<team_id>.png",
+            'image': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<new_team_id>.png",
             'link': "<gmaps>",
             'name': "<old_team> gym fallen",
             'description': "It is now controlled by <new_team>",
@@ -48,7 +49,7 @@ class FacebookPageAlarm(Alarm):
         },
         'egg': {
             'message': "A level <raid_level> raid is upcoming!",
-            'image': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
+            'image': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/egg_<raid_level>.png",
             'link': "<gmaps>",
             'name': 'Egg',
             'description': "The egg will hatch <begin_24h_time> (<begin_time_left>).",

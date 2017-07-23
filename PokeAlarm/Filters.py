@@ -106,32 +106,6 @@ def load_pokestop_section(settings):
     return stop
 
 
-def load_raid_section(settings):
-    log.info("Setting Raid Filters...")
-    raid = {
-        "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False)
-    }
-
-    raid_filters = settings.pop('filters', {})
-
-    raid['min_level'] = int(raid_filters.pop('min_level', 1) or 1)
-    raid['max_level'] = int(raid_filters.pop('max_level', 5) or 5)
-    raid['min_dist'] = float(raid_filters.pop('min_dist', 0.0) or 0.0)
-    raid['max_dist'] = float(raid_filters.pop('max_dist', float('inf')) or float('inf'))
-    raid['ignore_eggs'] = bool(parse_boolean(raid_filters.pop('ignore_eggs', None)) or False)
-
-    # load any pokemon filters
-    filters = load_pokemon_filters(settings)
-    raid['filters'] = filters
-
-    log.debug("Report raids between level {} and {}, ignore eggs? {}"
-              .format(raid['min_level'], raid['max_level'], raid['ignore_eggs']))
-    if raid['enabled'] is False:
-        log.info("Raid notifications will NOT be sent - Enabled is False.")
-
-    return raid
-
-
 def load_gym_section(settings):
     log.info("Setting Gym filters...")
     # Set the defaults for "True"
@@ -158,6 +132,43 @@ def load_gym_section(settings):
     if gym['enabled'] is False:
         log.info("Gym notifications will NOT be sent. - Enabled is False  ")
     return gym
+
+
+# Load Egg filter section
+def load_egg_section(settings):
+    log.info("Setting up Egg Filters...")
+    egg = {
+        "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False),
+        "min_level": int(settings.pop('min_level', 1) or 1),
+        "max_level": int(settings.pop('max_level', 5) or 5),
+        "min_dist": float(settings.pop('min_dist', 0.0) or 0.0),
+        "max_dist": float(settings.pop('max_dist', float('inf')) or float('inf'))
+    }
+
+    log.debug("Report eggs between level {} and {}".format(egg['min_level'], egg['max_level']))
+    if egg['enabled'] is False:
+        log.info("Egg notifications will NOT be sent - Enabled is False.")
+
+    return egg
+
+
+# Load Raid filter section
+def load_raid_section(settings):
+    log.info("Setting up Raid Filters...")
+    raid = {
+        "enabled": bool(parse_boolean(settings.pop('enabled', None)) or False),
+        "min_dist": float(settings.pop('min_dist', 0.0) or 0.0),
+        "max_dist": float(settings.pop('max_dist', float('inf')) or float('inf'))
+    }
+
+    # load any raid pokemon filters
+    filters = load_pokemon_filters(settings)
+    raid['filters'] = filters
+
+    if raid['enabled'] is False:
+        log.info("Raid notifications will NOT be sent - Enabled is False.")
+
+    return raid
 
 
 class Filter(object):

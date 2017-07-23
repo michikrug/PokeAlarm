@@ -41,8 +41,8 @@ class DiscordAlarm(Alarm):
         'gym': {
             'username': "<new_team> Gym Alerts",
             'content': "",
-            'icon_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<team_id>.png",
-            'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<team_id>.png",
+            'icon_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<new_team_id>.png",
+            'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_leader_<new_team_id>.png",
             'title': "A Team <old_team> gym has fallen!",
             'url': "<gmaps>",
             'body': "It is now controlled by <new_team>."
@@ -50,8 +50,8 @@ class DiscordAlarm(Alarm):
         'egg': {
             'username': "Egg",
             'content': "",
-            'icon_url': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
-            'avatar_url': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
+            'icon_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/egg_<raid_level>.png",
+            'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/egg_<raid_level>.png",
             'title': "Raid is incoming!",
             'url': "<gmaps>",
             'body': "A level <raid_level> raid will hatch <begin_24h_time> (<begin_time_left>)."
@@ -60,7 +60,7 @@ class DiscordAlarm(Alarm):
             'username': "Raid",
             'content': "",
             'icon_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/<pkmn_id>.png",
-            'avatar_url': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
+            'avatar_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/egg_<raid_level>.png",
             'title': "Level <raid_level> Raid is available against <pkmn>!",
             'url': "<gmaps>",
             'body': "The raid is available until <24h_time> (<time_left>)."
@@ -135,7 +135,7 @@ class DiscordAlarm(Alarm):
             'content': replace(alert['content'], info),
             'avatar_url':  replace(alert['avatar_url'], info),
         }
-        if not alert['disable_embed']:
+        if alert['disable_embed'] is False:
             payload['embeds'] = [{
                 'title': replace(alert['title'], info),
                 'url': replace(alert['url'], info),

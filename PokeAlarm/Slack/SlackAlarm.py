@@ -38,14 +38,14 @@ class SlackAlarm(Alarm):
         },
         'gym': {
             'username': "<new_team> Gym Alerts",
-            'icon_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<team_id>.png",
+            'icon_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<new_team_id>.png",
             'title': "A Team <old_team> gym has fallen!",
             'url': "<gmaps>",
             'body': "It is now controlled by <new_team>."
         },
         'egg': {
             'username': "Egg",
-            'icon_url': "https://raw.githubusercontent.com/fosJoddie/PokeAlarm/raids/icons/egg_<raid_level>.png",
+            'icon_url': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/egg_<raid_level>.png",
             'title': "A level <raid_level> raid is incoming!",
             'url': "<gmaps>",
             'body': "The egg will hatch <begin_24h_time> (<begin_time_left>)."
