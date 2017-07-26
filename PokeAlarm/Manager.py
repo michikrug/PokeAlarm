@@ -726,8 +726,8 @@ class Manager(object):
             if dist != 'unkn':
                 if filt.check_dist(dist) is False:
                     if self.__quiet is False:
-                        log.info("Gym rejected: distance ({:.2f}) was not in range" +
-                                 " {:.2f} to {:.2f} (F #{})".format(dist, filt.min_dist, filt.max_dist, filt_ct))
+                        log.info("Gym rejected: distance ({:.2f}) was not in range".format(dist) +
+                             " {:.2f} to {:.2f}".format(filt.min_dist, filt.max_dist, filt_ct))
                     continue
             else:
                 log.debug("Gym dist was not checked because the manager has no location set.")
