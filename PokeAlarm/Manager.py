@@ -772,10 +772,10 @@ class Manager(object):
         gym_info = self.__gym_info.get(gym_id, {})
 
         gym.update({
-            "gym_name": self.__gym_info.get(gym_id, {}).get('name', 'unknown'),
-            "gym_description": self.__gym_info.get(gym_id, {}).get('description', 'unknown'),
-            "gym_url": self.__gym_info.get(gym_id, {}).get('url', 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'),
-            "dist": get_dist_as_str(dist),
+            'gym_name': gym_info.get('name', 'unknown'),
+            'gym_description': gym_info.get('description', 'unknown'),
+            'gym_url': gym_info.get('url', 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'),
+            'dist': get_dist_as_str(dist),
             'dir': get_cardinal_dir([lat, lng], self.__latlng),
             'new_team': cur_team,
             'new_team_id': to_team_id,
@@ -854,16 +854,16 @@ class Manager(object):
         gym_info = self.__gym_info.get(gym_id, {})
 
         egg.update({
-            "gym_name": self.__gym_info.get(gym_id, {}).get('name', 'unknown'),
-            "gym_description": self.__gym_info.get(gym_id, {}).get('description', 'unknown'),
-            "gym_url": self.__gym_info.get(gym_id, {}).get('url', 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'),
+            'gym_name': gym_info.get('name', 'unknown'),
+            'gym_description': gym_info.get('description', 'unknown'),
+            'gym_url': gym_info.get('url', 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'),
             'time_left': time_str[0],
             '12h_time': time_str[1],
             '24h_time': time_str[2],
             'begin_time_left': start_time_str[0],
             'begin_12h_time': start_time_str[1],
             'begin_24h_time': start_time_str[2],
-            "dist": get_dist_as_str(dist),
+            'dist': get_dist_as_str(dist),
             'dir': get_cardinal_dir([lat, lng], self.__latlng)
         })
 
@@ -973,16 +973,16 @@ class Manager(object):
 
         raid.update({
             'pkmn': name,
-            "gym_name": self.__gym_info.get(gym_id, {}).get('name', 'unknown'),
-            "gym_description": self.__gym_info.get(gym_id, {}).get('description', 'unknown'),
-            "gym_url": self.__gym_info.get(gym_id, {}).get('url', 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'),
+            'gym_name': gym_info.get('name', 'unknown'),
+            'gym_description': gym_info.get('description', 'unknown'),
+            'gym_url': gym_info.get('url', 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'),
             'time_left': time_str[0],
             '12h_time': time_str[1],
             '24h_time': time_str[2],
             'begin_time_left': start_time_str[0],
             'begin_12h_time': start_time_str[1],
             'begin_24h_time': start_time_str[2],
-            "dist": get_dist_as_str(dist),
+            'dist': get_dist_as_str(dist),
             'dir': get_cardinal_dir([lat, lng], self.__latlng),
             'quick_move': self.__move_name.get(quick_id, 'unknown'),
             'charge_move': self.__move_name.get(charge_id, 'unknown')
@@ -1053,7 +1053,7 @@ class Manager(object):
 
     # Returns the LAT,LNG of a location given by either a name or coordinates
     def get_lat_lng_from_name(self, location_name):
-        if location_name is None:
+        if location_name is None or location_name is 'None':
             return None
         try:
             prog = re.compile("^(-?\d+\.\d+)[,\s]\s*(-?\d+\.\d+?)$")
