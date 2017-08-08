@@ -330,14 +330,13 @@ class Manager(object):
         log.debug(self.__gym_info)
         try:
             # Pull info from the cache and update it with our own
-            with open(os.path.join(self.__cache_path, 'gym_details.json'), 'r') as f:
-                cache = json.loads(f.read())
-            for key in cache:
-                self.__gym_info[key] = cache[key]
-            # Now dump our new cache
-            cache = json.dumps(self.__gym_info, indent=4, sort_keys=True)
-            with open(os.path.join(self.__cache_path, 'gym_details.json'), 'w') as f:
-                f.write(cache)
+            with open(os.path.join(self.__cache_path, 'gym_details.json'), 'r+') as f:
+                cache = json.load(f)
+                for key in cache:
+                    self.__gym_info[key] = cache[key]
+                f.seek(0)
+                json.dump(self.__gym_info, f)
+                f.truncate()
         except Exception as e:
             log.warning("Attempting to save cached gym_details failed: {}".format(e))
 
