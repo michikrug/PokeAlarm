@@ -1087,7 +1087,7 @@ class Manager(object):
         if location_name is None or location_name == 'None' or location_name == 'none':
             return None
         try:
-            prog = re.compile("^(-?\d+\.\d+)[,\s]\s*(-?\d+\.\d+?)$")
+            prog = re.compile("^(-?\d+\.\d+)\s+(-?\d+\.\d+?)$")
             res = prog.match(location_name)
             latitude, longitude = None, None
             if res:
@@ -1105,7 +1105,7 @@ class Manager(object):
             log.error("Encountered error while getting error by name ({}: {})".format(type(e).__name__, e))
             log.debug("Stack trace: \n {}".format(traceback.format_exc()))
             log.error("Encounted error looking for location {}.".format(location_name)
-                      + "Please make sure your location is in the correct format")
+                      + " Please make sure your location is in the correct format")
             sys.exit(1)
 
     # Returns the name of the location based on lat and lng
