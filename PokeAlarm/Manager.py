@@ -1084,7 +1084,7 @@ class Manager(object):
 
     # Returns the LAT,LNG of a location given by either a name or coordinates
     def get_lat_lng_from_name(self, location_name):
-        if location_name is None or location_name is 'None':
+        if location_name is None or location_name == 'None' or location_name == 'none':
             return None
         try:
             prog = re.compile("^(-?\d+\.\d+)[,\s]\s*(-?\d+\.\d+?)$")
