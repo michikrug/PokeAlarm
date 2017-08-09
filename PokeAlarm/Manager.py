@@ -328,17 +328,25 @@ class Manager(object):
     def update_cache(self):
         log.debug("Updating gym_details cache...")
         log.debug(self.__gym_info)
+
         try:
             # Pull info from the cache and update it with our own
-            with open(os.path.join(self.__cache_path, 'gym_details.json'), 'r+') as f:
+            with open(os.path.join(self.__cache_path, 'gym_details.json'), 'r') as f:
                 cache = json.load(f)
-                for key in cache:
-                    self.__gym_info[key] = cache[key]
-                f.seek(0)
-                json.dump(self.__gym_info, f)
-                f.truncate()
+                if len(cache) > len(self.__gym_info):
+                    for key in cache:
+                        self.__gym_info[key] = cache[key]
+                    log.info("Successfully updated gym_details from cache.")
         except Exception as e:
-            log.warning("Attempting to save cached gym_details failed: {}".format(e))
+            log.warning("Attempting to load cached gym_details failed: {}".format(e))
+
+        if len(cache) < len(self.__gym_info):
+            try:
+                with open(os.path.join(self.__cache_path, 'gym_details.json'), 'w') as f:
+                    json.dump(self.__gym_info, f)
+                log.info("Successfully saved gym_details cache.")
+            except Exception as e:
+                log.warning("Attempting to save cached gym_details failed: {}".format(e))
 
     # Check if a given pokemon is active on a filter
     def check_pokemon_filter(self, filters, pkmn, dist):
