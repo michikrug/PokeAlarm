@@ -328,7 +328,7 @@ class Manager(object):
     def update_cache(self):
         log.debug("Updating gym_details cache...")
         log.debug(self.__gym_info)
-
+        cache = {}
         try:
             # Pull info from the cache and update it with our own
             with open(os.path.join(self.__cache_path, 'gym_details.json'), 'r') as f:
