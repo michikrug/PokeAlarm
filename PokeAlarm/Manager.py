@@ -1016,8 +1016,7 @@ class Manager(object):
             'dist': get_dist_as_str(dist),
             'dir': get_cardinal_dir([lat, lng], self.__latlng),
             'quick_move': self.__locale.get_move_name(quick_id),
-            'charge_move': self.__locale.get_move_name(charge_id),
-            'form': self.__locale.get_form_name(pkmn_id, pkmn['form_id'])
+            'charge_move': self.__locale.get_move_name(charge_id)
         })
 
         threads = []
