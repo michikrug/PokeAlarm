@@ -823,7 +823,7 @@ class Manager(object):
         gym.update({
             'gym_name': gym_details.get('name', 'unknown'),
             'gym_description': gym_details.get('description', 'unknown'),
-            'gym_url': gym_details.get('url', 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'),
+            'gym_url': gym_details.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
             'dist': get_dist_as_str(dist),
             'dir': get_cardinal_dir([lat, lng], self.__location),
             'new_team': cur_team,
@@ -908,7 +908,7 @@ class Manager(object):
         egg.update({
             'gym_name': gym_details.get('name', 'unknown'),
             'gym_description': gym_details.get('description', 'unknown'),
-            'gym_url': gym_details.get('url', 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'),
+            'gym_url': gym_details.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
             'time_left': time_str[0],
             '12h_time': time_str[1],
             '24h_time': time_str[2],
@@ -1029,7 +1029,7 @@ class Manager(object):
             'pkmn': name,
             'gym_name': gym_details.get('name', 'unknown'),
             'gym_description': gym_details.get('description', 'unknown'),
-            'gym_url': gym_details.get('url', 'https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_0.png'),
+            'gym_url': gym_details.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
             'time_left': time_str[0],
             '12h_time': time_str[1],
             '24h_time': time_str[2],
