@@ -621,6 +621,7 @@ class Manager(object):
         # Finally, add in all the extra crap we waited to calculate until now
         time_str = get_time_as_str(pkmn['disappear_time'], self.__timezone)
         iv = pkmn['iv']
+        form = self.__locale.get_form_name(pkmn_id, pkmn['form_id'])
 
         pkmn.update({
             'pkmn': name,
@@ -634,7 +635,8 @@ class Manager(object):
             'iv_2': "{:.2f}".format(iv) if iv != '?' else '?',
             'quick_move': self.__locale.get_move_name(quick_id),
             'charge_move': self.__locale.get_move_name(charge_id),
-            'form': self.__locale.get_form_name(pkmn_id, pkmn['form_id'])
+            'form': form,
+            'form_or_empty': '' if form == 'unknown' else form
         })
         if self.__loc_service:
             self.__loc_service.add_optional_arguments(self.__location, [lat, lng], pkmn)
@@ -737,13 +739,17 @@ class Manager(object):
                 "url": gym['url']
             }
 
-        if self.__gym_settings['enabled'] is False:
-            log.debug("Gym ignored: notifications are disabled.")
-            return
-
         # Extract some basic information
         to_team_id = gym['new_team_id']
         from_team_id = self.__gym_hist.get(gym_id)
+
+        if from_team_id != to_team_id:
+            # Update gym's last known team
+            self.__gym_hist[gym_id] = to_team_id
+
+        if self.__gym_settings['enabled'] is False:
+            log.debug("Gym ignored: notifications are disabled.")
+            return
 
         # Doesn't look like anything to me
         if to_team_id == from_team_id:
@@ -818,12 +824,12 @@ class Manager(object):
         else:
             log.debug("Gym inside geofences was not checked because no geofences were set.")
 
-        gym_details = self.__gym_info.get(gym_id, {})
+        gym_info = self.__gym_info.get(gym_id, {})
 
         gym.update({
-            'gym_name': gym_details.get('name', 'unknown'),
-            'gym_description': gym_details.get('description', 'unknown'),
-            'gym_url': gym_details.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
+            'gym_name': gym_info.get('name', 'unknown'),
+            'gym_description': gym_info.get('description', 'unknown'),
+            'gym_url': gym_info.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
             'dist': get_dist_as_str(dist),
             'dir': get_cardinal_dir([lat, lng], self.__location),
             'new_team': cur_team,
@@ -903,12 +909,12 @@ class Manager(object):
         time_str = get_time_as_str(egg['raid_end'], self.__timezone)
         start_time_str = get_time_as_str(egg['raid_begin'], self.__timezone)
 
-        gym_details = self.__gym_info.get(gym_id, {})
+        gym_info = self.__gym_info.get(gym_id, {})
 
         egg.update({
-            'gym_name': gym_details.get('name', 'unknown'),
-            'gym_description': gym_details.get('description', 'unknown'),
-            'gym_url': gym_details.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
+            'gym_name': gym_info.get('name', 'unknown'),
+            'gym_description': gym_info.get('description', 'unknown'),
+            'gym_url': gym_infos.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
             'time_left': time_str[0],
             '12h_time': time_str[1],
             '24h_time': time_str[2],
@@ -1023,13 +1029,16 @@ class Manager(object):
         time_str = get_time_as_str(raid['raid_end'], self.__timezone)
         start_time_str = get_time_as_str(raid['raid_begin'], self.__timezone)
 
-        gym_details = self.__gym_info.get(gym_id, {})
+        # team id saved in self.__gym_hist when processing gym
+        team_id = self.__gym_hist.get(gym_id, '?')
+        form = self.__locale.get_form_name(pkmn_id, raid_pkmn['form_id'])
+        gym_info = self.__gym_info.get(gym_id, {})
 
         raid.update({
             'pkmn': name,
-            'gym_name': gym_details.get('name', 'unknown'),
-            'gym_description': gym_details.get('description', 'unknown'),
-            'gym_url': gym_details.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
+            'gym_name': gym_info.get('name', 'unknown'),
+            'gym_description': gym_info.get('description', 'unknown'),
+            'gym_url': gym_info.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
             'time_left': time_str[0],
             '12h_time': time_str[1],
             '24h_time': time_str[2],
@@ -1039,7 +1048,11 @@ class Manager(object):
             'dist': get_dist_as_str(dist),
             'dir': get_cardinal_dir([lat, lng], self.__location),
             'quick_move': self.__locale.get_move_name(quick_id),
-            'charge_move': self.__locale.get_move_name(charge_id)
+            'charge_move': self.__locale.get_move_name(charge_id),
+            'form': form,
+            'form_or_empty': '' if form == 'unknown' else form,
+            'team_id': team_id,
+            'team_name': self.__locale.get_team_name(team_id)
         })
 
         threads = []
