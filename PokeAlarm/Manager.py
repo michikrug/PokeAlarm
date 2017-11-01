@@ -16,7 +16,7 @@ from Filters import load_pokemon_section, load_pokestop_section, load_gym_sectio
     load_raid_section
 from Locale import Locale
 from Utils import get_cardinal_dir, get_dist_as_str, get_earth_dist, get_path, get_time_as_str, \
-    require_and_remove_key, parse_boolean, contains_arg
+    require_and_remove_key, parse_boolean, contains_arg, get_image_url
 from Geofence import load_geofence_file
 from LocationServices import LocationService
 
@@ -829,7 +829,7 @@ class Manager(object):
         gym.update({
             'gym_name': gym_info.get('name', 'unknown'),
             'gym_description': gym_info.get('description', 'unknown'),
-            'gym_url': gym_info.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
+            'gym_url': gym_info.get('url', get_image_url('icons/gym_0.png')),
             'dist': get_dist_as_str(dist),
             'dir': get_cardinal_dir([lat, lng], self.__location),
             'new_team': cur_team,
@@ -909,12 +909,14 @@ class Manager(object):
         time_str = get_time_as_str(egg['raid_end'], self.__timezone)
         start_time_str = get_time_as_str(egg['raid_begin'], self.__timezone)
 
+        # team id saved in self.__gym_hist when processing gym
+        team_id = self.__gym_hist.get(gym_id, '?')
         gym_info = self.__gym_info.get(gym_id, {})
 
         egg.update({
             'gym_name': gym_info.get('name', 'unknown'),
             'gym_description': gym_info.get('description', 'unknown'),
-            'gym_url': gym_infos.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
+            'gym_url': gym_infos.get('url', get_image_url('icons/gym_0.png')),
             'time_left': time_str[0],
             '12h_time': time_str[1],
             '24h_time': time_str[2],
@@ -922,7 +924,9 @@ class Manager(object):
             'begin_12h_time': start_time_str[1],
             'begin_24h_time': start_time_str[2],
             'dist': get_dist_as_str(dist),
-            'dir': get_cardinal_dir([lat, lng], self.__location)
+            'dir': get_cardinal_dir([lat, lng], self.__location),
+            'team_id': team_id,
+            'team_name': self.__locale.get_team_name(team_id)
         })
 
         threads = []
@@ -1038,7 +1042,7 @@ class Manager(object):
             'pkmn': name,
             'gym_name': gym_info.get('name', 'unknown'),
             'gym_description': gym_info.get('description', 'unknown'),
-            'gym_url': gym_info.get('url', 'https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/icons/gym_0.png'),
+            'gym_url': gym_info.get('url', get_image_url('icons/gym_0.png')),
             'time_left': time_str[0],
             '12h_time': time_str[1],
             '24h_time': time_str[2],
