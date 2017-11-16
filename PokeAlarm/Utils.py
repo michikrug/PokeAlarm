@@ -7,7 +7,6 @@ import logging
 from math import radians, sin, cos, atan2, sqrt, degrees
 import os
 import sys
-import re
 # 3rd Party Imports
 # Local Imports
 from . import config
@@ -44,6 +43,7 @@ def parse_unicode(bytestring):
     decoded_string = bytestring.decode(sys.getfilesystemencoding())
     return decoded_string
 
+
 # Used for lazy installs - installs required module with pip
 def pip_install(module, version):
     import subprocess
@@ -70,6 +70,7 @@ def require_and_remove_key(key, _dict, location):
         log.error("The parameter '{}' is required for {}".format(key, location)
                   + " Please check the PokeAlarm documentation for correct formatting.")
         sys.exit(1)
+
 
 ########################################################################################################################
 
@@ -160,7 +161,7 @@ def get_move_duration(move_id):
     return get_move_duration.info.get(move_id, 'unkn')
 
 
-# Returns the duation of a move when requesting
+# Returns the duration of a move when requesting
 def get_move_energy(move_id):
     if not hasattr(get_move_energy, 'info'):
         get_move_energy.info = {}
@@ -196,6 +197,48 @@ def get_base_weight(pokemon_id):
     return get_base_weight.info.get(pokemon_id)
 
 
+# Returns the base stats for a pokemon
+def get_base_stats(pokemon_id):
+    if not hasattr(get_base_stats, 'info'):
+        get_base_stats.info = {}
+        file_ = get_path('data/base_stats.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for id_ in j:
+            get_base_stats.info[int(id_)] = {
+                "attack": float(j[id_].get('attack')),
+                "defense": float(j[id_].get('defense')),
+                "stamina": float(j[id_].get('stamina'))
+            }
+
+    return get_base_stats.info.get(pokemon_id)
+
+
+# Returns a cp range for a certain level of a pokemon when hatched or caught in a raid
+def get_pokemon_cp_range(pokemon_id, level):
+    stats = get_base_stats(pokemon_id)
+
+    if not hasattr(get_pokemon_cp_range, 'info'):
+        get_pokemon_cp_range.info = {}
+        file_ = get_path('data/cp_multipliers.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for lvl_ in j:
+            get_pokemon_cp_range.info[lvl_] = j[lvl_]
+
+    cp_multi = get_pokemon_cp_range.info["{}".format(level)]
+
+    # minimum IV for a egg/raid pokemon is 10/10/10
+    min_cp = int(
+        ((stats['attack'] + 10.0) * pow((stats['defense'] + 10.0), 0.5) * pow((stats['stamina'] + 10.0), 0.5) *
+         pow(cp_multi, 2)) / 10.0)
+    max_cp = int(
+        ((stats['attack'] + 15.0) * pow((stats['defense'] + 15.0), 0.5) * pow((stats['stamina'] + 15.0), 0.5) *
+         pow(cp_multi, 2)) / 10.0)
+
+    return min_cp, max_cp
+
+
 # Returns the size ratio of a pokemon
 def size_ratio(pokemon_id, height, weight):
     height_ratio = height / get_base_height(pokemon_id)
@@ -225,53 +268,9 @@ def get_pokemon_gender(gender):
     elif gender == 2:
         return u'\u2640'  # female symbol
     elif gender == 3:
-        return u'\u26b2'  #neutral
-    return '?' # catch all
+        return u'\u26b2'  # neutral
+    return '?'  # catch all
 
-
-# Returns the team leader of a team:
-def get_leader(team_id):
-    if team_id == 1:
-        return "Blanche"
-    elif team_id == 2:
-        return "Candela"
-    elif team_id == 3:
-        return "Spark"
-    else:
-        return "Professor Willow"
-
-# Returns color for discord embeds
-def get_color(color_id):
-    try:
-        if int(color_id) < 25:
-            color_ = 0x9d9d9d
-        elif int(color_id) < 50:
-            color_ = 0xffffff
-        elif int(color_id) < 81:
-            color_ = 0x1eff00
-        elif int(color_id) < 90:
-            color_ = 0x0070dd
-        elif int(color_id) < 100:
-            color_ = 0xa335ee
-        elif int(color_id) == 100:
-            color_ = 0xff8000
-    except:
-        try:
-            if color_id == "?":
-                color_ = 0x4F545C
-            elif color_id == "Rot":
-                color_ = 0xFE0103
-            elif color_id == "Blau":
-                color_ = 0x1102FD
-            elif color_id == "Gelb":
-                color_ = 0xF6F006
-            elif color_id[-1] == 's' or color_id[-1] == 'm':
-                color_ = 0xff66ff
-            else:
-                color_ = 0x4F545C
-        except:
-            color_ = 0x4F545C
-    return color_
 
 ########################################################################################################################
 
@@ -283,10 +282,12 @@ def get_gmaps_link(lat, lng):
     latlng = '{},{}'.format(repr(lat), repr(lng))
     return 'http://maps.google.com/maps?q={}'.format(latlng)
 
-#Returns a String link to Apple Maps Pin at the location	
+
+# Returns a String link to Apple Maps Pin at the location
 def get_applemaps_link(lat, lng):
-	latLon = '{},{}'.format(repr(lat), repr(lng))
-	return 'http://maps.apple.com/maps?daddr={}&z=10&t=s&dirflg=w'.format(latLon)
+    latLon = '{},{}'.format(repr(lat), repr(lng))
+    return 'http://maps.apple.com/maps?daddr={}&z=10&t=s&dirflg=w'.format(latLon)
+
 
 # Returns a static map url with <lat> and <lng> parameters for dynamic test
 def get_static_map_url(settings, api_key=None):  # TODO: optimize formatting
@@ -390,6 +391,6 @@ def get_time_as_str(t, timezone=None):
 
 # Return the default url for images and stuff
 def get_image_url(image):
-    return "https://raw.githubusercontent.com/RocketMap/PokeAlarm/master/" + image
+    return "https://raw.githubusercontent.com/not4profit/images/master/" + image
 
 ########################################################################################################################
