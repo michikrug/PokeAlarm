@@ -73,9 +73,6 @@ class Manager(object):
         self.__alarms = []
         self.load_alarms_file(get_path(alarm_file), int(max_attempts))
 
-        # Location of the cache file
-        self.__cache_path = get_path('cache')
-
         # Initialize the queue and start the process
         self.__queue = multiprocessing.Queue()
         self.__event = multiprocessing.Event()
@@ -357,30 +354,6 @@ class Manager(object):
             sys.exit(1)
         else:
             log.info("Location successfully set to '{},{}'.".format(self.__location[0], self.__location[1]))
-
-    # Write the cached info to a file
-    def update_cache(self):
-        log.debug("Updating gym_details cache...")
-        log.debug(self.__gym_info)
-        cache = {}
-        try:
-            # Pull info from the cache and update it with our own
-            with open(os.path.join(self.__cache_path, 'gym_details.json'), 'r') as f:
-                cache = json.load(f)
-                if len(cache) > len(self.__gym_info):
-                    for key in cache:
-                        self.__gym_info[key] = cache[key]
-                    log.info("Successfully updated gym_details from cache.")
-        except Exception as e:
-            log.warning("Attempting to load cached gym_details failed: {}".format(e))
-
-        if len(cache) < len(self.__gym_info):
-            try:
-                with open(os.path.join(self.__cache_path, 'gym_details.json'), 'w') as f:
-                    json.dump(self.__gym_info, f)
-                log.info("Successfully saved gym_details cache.")
-            except Exception as e:
-                log.warning("Attempting to save cached gym_details failed: {}".format(e))
 
     # Check if a given pokemon is active on a filter
     def check_pokemon_filter(self, filters, pkmn, dist):
