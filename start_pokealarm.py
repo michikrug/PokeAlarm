@@ -12,7 +12,7 @@ logging.basicConfig(format='%(asctime)s [%(processName)15.15s][%(name)10.10s][%(
 
 # Standard Library Imports
 import configargparse
-from gevent import wsgi, spawn
+from gevent import wsgi, spawn, signal
 import pytz
 import Queue
 import json
@@ -22,6 +22,7 @@ import sys
 from flask import Flask, request, abort
 # Local Imports
 from PokeAlarm import config
+from PokeAlarm.Cache import cache_options
 from PokeAlarm.Manager import Manager
 from PokeAlarm.WebhookStructs import RocketMap
 from PokeAlarm.Utils import get_path, parse_unicode
@@ -36,6 +37,7 @@ log = logging.getLogger('Server')
 
 # Global Variables
 app = Flask(__name__)
+server = None
 data_queue = Queue.Queue()
 managers = {}
 
@@ -50,14 +52,18 @@ def accept_webhook():
     try:
         log.debug("POST request received from {}.".format(request.remote_addr))
         data = json.loads(request.data)
-        data_queue.put(data)
+        if type(data) == dict: # older webhook style
+            data_queue.put(data)
+        else:   # For RM's frame
+            for frame in data:
+                data_queue.put(frame)
     except Exception as e:
         log.error("Encountered error while receiving webhook ({}: {})".format(type(e).__name__, e))
         abort(400)
     return "OK"  # request ok
 
 
-# Thread used to distribute the data into various processes (for PokemonGo-Map format)
+# Thread used to distribute the data into various processes (for RocketMap format)
 def manage_webhook_data(queue):
     while True:
         if queue.qsize() > 300:
@@ -125,6 +131,9 @@ def parse_settings(root_path):
     parser.add_argument('-u', '--units', type=parse_unicode, default=['imperial'], action='append',
                         choices=['metric', 'imperial'],
                         help='Specify either metric or imperial units to use for distance measurements. ')
+    parser.add_argument('-ct', '--cache_type', type=parse_unicode, action='append', default=['mem'],
+                        choices=cache_options,
+                        help="Specify the type of cache to use. Options: ['mem', 'file'] (Default: 'mem')")
     parser.add_argument('-tl', '--timelimit', type=int, default=[0], action='append',
                         help='Minimum number of seconds remaining on a pokemon to send a notify')
     parser.add_argument('-ma', '--max_attempts', type=int, default=[3], action='append',
@@ -147,7 +156,7 @@ def parse_settings(root_path):
 
     # Check to make sure that the same number of arguements are included
     for list_ in [args.key, args.filters, args.alarms, args.geofences, args.location,
-                  args.locale, args.units, args.timelimit, args.max_attempts, args.timezone]:
+                  args.locale, args.units, args.cache_type, args.timelimit, args.max_attempts, args.timezone]:
         if len(list_) > 1:  # Remove defaults from the list
             list_.pop(0)
         size = len(list_)
@@ -183,6 +192,7 @@ def parse_settings(root_path):
             time_limit=args.timelimit[m_ct] if len(args.timelimit) > 1 else args.timelimit[0],
             max_attempts=args.max_attempts[m_ct] if len(args.max_attempts) > 1 else args.max_attempts[0],
             quiet=False,  # TODO: I'll totally document this some day. Promise.
+            cache_type=args.cache_type[m_ct] if len(args.cache_type) > 1 else args.cache_type[0],
             location=args.location[m_ct] if len(args.location) > 1 else args.location[0],
             filter_file=args.filters[m_ct] if len(args.filters) > 1 else args.filters[0],
             geofence_file=args.geofences[m_ct] if len(args.geofences) > 1 else args.geofences[0],
@@ -199,7 +209,19 @@ def parse_settings(root_path):
     for m_name in managers:
         managers[m_name].start()
 
+    # Set up signal handlers for graceful exit
+    signal(signal.SIGINT, exit_gracefully)
+    signal(signal.SIGTERM, exit_gracefully)
 
+
+def exit_gracefully():
+    log.info("PokeAlarm is closing down!")
+    for m_name in managers:
+        managers[m_name].stop()
+    for m_name in managers:
+        managers[m_name].join()
+    log.info("PokeAlarm exited!")
+    exit(0)
 
 ########################################################################################################################
 

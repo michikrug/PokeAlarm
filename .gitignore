@@ -1,6 +1,9 @@
+env
 *.pyc
 *.idea
 *.json
 *.ini
 *.txt
+cache/*.cache
+!data/*.json
 !locales/*.json

@@ -5,7 +5,7 @@ import logging
 import facebook
 # Local Imports
 from ..Alarm import Alarm
-from ..Utils import parse_boolean, get_time_as_str, reject_leftover_parameters, require_and_remove_key
+from ..Utils import parse_boolean, get_time_as_str, reject_leftover_parameters, require_and_remove_key, get_image_url
 
 log = logging.getLogger(__name__)
 try_sending = Alarm.try_sending
@@ -21,10 +21,11 @@ replace = Alarm.replace
 
 class FacebookPageAlarm(Alarm):
 
+
     _defaults = {
         'pokemon': {
             'message': "A wild <pkmn> has appeared!",
-            'image': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/<pkmn_id>.png",
+            'image': get_image_url("monsters/<pkmn_id_3>_<form_id_or_empty>.png"),
             'link': "<gmaps>",
             'name': "<pkmn>",
             'description': "Available until <24h_time> (<time_left>)",
@@ -32,7 +33,7 @@ class FacebookPageAlarm(Alarm):
         },
         'pokestop': {
             'message': "Someone has placed a lure on a Pokestop!",
-            'image': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/pokestop.png",
+            'image': get_image_url("stop/ready.png"),
             'link': "<gmaps>",
             'name': "Lured Pokestop",
             'description': "Lure will expire at <24h_time> (<time_left>)",
@@ -40,14 +41,29 @@ class FacebookPageAlarm(Alarm):
         },
         'gym': {
             'message': "A Team <old_team> gym has fallen!",
-            'image': "https://raw.githubusercontent.com/kvangent/PokeAlarm/master/icons/gym_<team_id>.png",
+            'image': get_image_url("gyms/<new_team_id>.png"),
             'link': "<gmaps>",
-            'name': "<old_team> gym fallen", 
+            'name': "<old_team> gym fallen",
             'description': "It is now controlled by <new_team>",
+            'caption': None
+        },
+        'egg': {
+            'message': "A level <raid_level> raid is upcoming!",
+            'image': get_image_url("eggs/<raid_level>.png"),
+            'link': "<gmaps>",
+            'name': 'Egg',
+            'description': "The egg will hatch <begin_24h_time> (<begin_time_left>).",
+            'caption': None
+        },
+        'raid': {
+            'message': "A Raid is available against <pkmn>!",
+            'image': get_image_url("monsters/<pkmn_id_3>_<form_id_or_empty>.png"),
+            'link': "<gmaps>",
+            'name': 'Raid',
+            'description': "The raid is available until <24h_time> (<time_left>).",
             'caption': None
         }
     }
-
     # Gather settings and create alarm
     def __init__(self, settings):
         # Required Parameters
@@ -61,6 +77,8 @@ class FacebookPageAlarm(Alarm):
         self.__pokemon = self.create_alert_settings(settings.pop('pokemon', {}), self._defaults['pokemon'])
         self.__pokestop = self.create_alert_settings(settings.pop('pokestop', {}), self._defaults['pokestop'])
         self.__gym = self.create_alert_settings(settings.pop('gym', {}), self._defaults['gym'])
+        self.__egg = self.create_alert_settings(settings.pop('egg', {}), self._defaults['egg'])
+        self.__raid = self.create_alert_settings(settings.pop('raid', {}), self._defaults['raid'])
 
         #  Warn user about leftover parameters
         reject_leftover_parameters(settings, "'Alarm level in FacebookPage alarm.")
@@ -118,6 +136,14 @@ class FacebookPageAlarm(Alarm):
     # Trigger an alert based on Gym info
     def gym_alert(self, gym_info):
         self.send_alert(self.__gym, gym_info)
+
+    # Trigger an alert when a raid egg has spawned (UPCOMING raid event)
+    def raid_egg_alert(self, raid_info):
+        self.send_alert(self.__egg, raid_info)
+
+    # Trigger an alert based on Raid info
+    def raid_alert(self, raid_info):
+        self.send_alert(self.__raid, raid_info)
 
     # Sends a wall post to Facebook
     def post_to_wall(self, message, attachment=None):

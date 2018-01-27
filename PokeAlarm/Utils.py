@@ -7,7 +7,6 @@ import logging
 from math import radians, sin, cos, atan2, sqrt, degrees
 import os
 import sys
-import re
 # 3rd Party Imports
 # Local Imports
 from . import config
@@ -44,6 +43,7 @@ def parse_unicode(bytestring):
     decoded_string = bytestring.decode(sys.getfilesystemencoding())
     return decoded_string
 
+
 # Used for lazy installs - installs required module with pip
 def pip_install(module, version):
     import subprocess
@@ -71,6 +71,7 @@ def require_and_remove_key(key, _dict, location):
                   + " Please check the PokeAlarm documentation for correct formatting.")
         sys.exit(1)
 
+
 ########################################################################################################################
 
 ################################################## POKEMON UTILITIES ###################################################
@@ -81,10 +82,11 @@ def get_pkmn_id(pokemon_name):
     name = pokemon_name.lower()
     if not hasattr(get_pkmn_id, 'ids'):
         get_pkmn_id.ids = {}
-        files = glob(get_path('locales/*/pokemon.json'))
+        files = glob(get_path('locales/*.json'))
         for file_ in files:
             with open(file_, 'r') as f:
                 j = json.loads(f.read())
+                j = j['pokemon']
                 for id_ in j:
                     nm = j[id_].lower()
                     get_pkmn_id.ids[nm] = int(id_)
@@ -96,10 +98,11 @@ def get_move_id(move_name):
     name = move_name.lower()
     if not hasattr(get_move_id, 'ids'):
         get_move_id.ids = {}
-        files = glob(get_path('locales/*/moves.json'))
+        files = glob(get_path('locales/*.json'))
         for file_ in files:
             with open(file_, 'r') as f:
                 j = json.loads(f.read())
+                j = j['moves']
                 for id_ in j:
                     nm = j[id_].lower()
                     get_move_id.ids[nm] = int(id_)
@@ -111,10 +114,11 @@ def get_team_id(team_name):
     name = team_name.lower()
     if not hasattr(get_team_id, 'ids'):
         get_team_id.ids = {}
-        files = glob(get_path('locales/*/teams.json'))
+        files = glob(get_path('locales/*.json'))
         for file_ in files:
             with open(file_, 'r') as f:
                 j = json.loads(f.read())
+                j = j['teams']
                 for id_ in j:
                     nm = j[id_].lower()
                     get_team_id.ids[nm] = int(id_)
@@ -125,7 +129,7 @@ def get_team_id(team_name):
 def get_move_damage(move_id):
     if not hasattr(get_move_damage, 'info'):
         get_move_damage.info = {}
-        file_ = get_path('locales/move_info.json')
+        file_ = get_path('data/move_info.json')
         with open(file_, 'r') as f:
             j = json.loads(f.read())
         for id_ in j:
@@ -137,7 +141,7 @@ def get_move_damage(move_id):
 def get_move_dps(move_id):
     if not hasattr(get_move_dps, 'info'):
         get_move_dps.info = {}
-        file_ = get_path('locales/move_info.json')
+        file_ = get_path('data/move_info.json')
         with open(file_, 'r') as f:
             j = json.loads(f.read())
         for id_ in j:
@@ -149,7 +153,7 @@ def get_move_dps(move_id):
 def get_move_duration(move_id):
     if not hasattr(get_move_duration, 'info'):
         get_move_duration.info = {}
-        file_ = get_path('locales/move_info.json')
+        file_ = get_path('data/move_info.json')
         with open(file_, 'r') as f:
             j = json.loads(f.read())
         for id_ in j:
@@ -157,11 +161,11 @@ def get_move_duration(move_id):
     return get_move_duration.info.get(move_id, 'unkn')
 
 
-# Returns the duation of a move when requesting
+# Returns the duration of a move when requesting
 def get_move_energy(move_id):
     if not hasattr(get_move_energy, 'info'):
         get_move_energy.info = {}
-        file_ = get_path('locales/move_info.json')
+        file_ = get_path('data/move_info.json')
         with open(file_, 'r') as f:
             j = json.loads(f.read())
         for id_ in j:
@@ -173,7 +177,7 @@ def get_move_energy(move_id):
 def get_base_height(pokemon_id):
     if not hasattr(get_base_height, 'info'):
         get_base_height.info = {}
-        file_ = get_path('locales/base_stats.json')
+        file_ = get_path('data/base_stats.json')
         with open(file_, 'r') as f:
             j = json.loads(f.read())
         for id_ in j:
@@ -185,12 +189,54 @@ def get_base_height(pokemon_id):
 def get_base_weight(pokemon_id):
     if not hasattr(get_base_weight, 'info'):
         get_base_weight.info = {}
-        file_ = get_path('locales/base_stats.json')
+        file_ = get_path('data/base_stats.json')
         with open(file_, 'r') as f:
             j = json.loads(f.read())
         for id_ in j:
             get_base_weight.info[int(id_)] = j[id_].get('weight')
     return get_base_weight.info.get(pokemon_id)
+
+
+# Returns the base stats for a pokemon
+def get_base_stats(pokemon_id):
+    if not hasattr(get_base_stats, 'info'):
+        get_base_stats.info = {}
+        file_ = get_path('data/base_stats.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for id_ in j:
+            get_base_stats.info[int(id_)] = {
+                "attack": float(j[id_].get('attack')),
+                "defense": float(j[id_].get('defense')),
+                "stamina": float(j[id_].get('stamina'))
+            }
+
+    return get_base_stats.info.get(pokemon_id)
+
+
+# Returns a cp range for a certain level of a pokemon when hatched or caught in a raid
+def get_pokemon_cp_range(pokemon_id, level):
+    stats = get_base_stats(pokemon_id)
+
+    if not hasattr(get_pokemon_cp_range, 'info'):
+        get_pokemon_cp_range.info = {}
+        file_ = get_path('data/cp_multipliers.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for lvl_ in j:
+            get_pokemon_cp_range.info[lvl_] = j[lvl_]
+
+    cp_multi = get_pokemon_cp_range.info["{}".format(level)]
+
+    # minimum IV for a egg/raid pokemon is 10/10/10
+    min_cp = int(
+        ((stats['attack'] + 10.0) * pow((stats['defense'] + 10.0), 0.5) * pow((stats['stamina'] + 10.0), 0.5) *
+         pow(cp_multi, 2)) / 10.0)
+    max_cp = int(
+        ((stats['attack'] + 15.0) * pow((stats['defense'] + 15.0), 0.5) * pow((stats['stamina'] + 15.0), 0.5) *
+         pow(cp_multi, 2)) / 10.0)
+
+    return min_cp, max_cp
 
 
 # Returns the size ratio of a pokemon
@@ -222,8 +268,8 @@ def get_pokemon_gender(gender):
     elif gender == 2:
         return u'\u2640'  # female symbol
     elif gender == 3:
-        return u'\u26b2'  #neutral
-    return '?' # catch all
+        return u'\u26b2'  # neutral
+    return '?'  # catch all
 
 
 ########################################################################################################################
@@ -236,10 +282,12 @@ def get_gmaps_link(lat, lng):
     latlng = '{},{}'.format(repr(lat), repr(lng))
     return 'http://maps.google.com/maps?q={}'.format(latlng)
 
-#Returns a String link to Apple Maps Pin at the location	
+
+# Returns a String link to Apple Maps Pin at the location
 def get_applemaps_link(lat, lng):
-	latLon = '{},{}'.format(repr(lat), repr(lng))
-	return 'http://maps.apple.com/maps?daddr={}&z=10&t=s&dirflg=w'.format(latLon)
+    latLon = '{},{}'.format(repr(lat), repr(lng))
+    return 'http://maps.apple.com/maps?daddr={}&z=10&t=s&dirflg=w'.format(latLon)
+
 
 # Returns a static map url with <lat> and <lng> parameters for dynamic test
 def get_static_map_url(settings, api_key=None):  # TODO: optimize formatting
@@ -333,11 +381,16 @@ def get_time_as_str(t, timezone=None):
     else:
         disappear_time = datetime.now() + d
     # Time remaining in minutes and seconds
-    time_left = "%dm %ds" % (m, s)
+    time_left = "%dm %ds" % (m, s) if h == 0 else "%dh %dm" % (h, m)
     # Dissapear time in 12h format, eg "2:30:16 PM"
     time_12 = disappear_time.strftime("%I:%M:%S") + disappear_time.strftime("%p").lower()
     # Dissapear time in 24h format including seconds, eg "14:30:16"
     time_24 = disappear_time.strftime("%H:%M:%S")
     return time_left, time_12, time_24
+
+
+# Return the default url for images and stuff
+def get_image_url(image):
+    return "https://raw.githubusercontent.com/not4profit/images/master/" + image
 
 ########################################################################################################################
