@@ -181,20 +181,20 @@ class TelegramAlarm(Alarm):
         log.debug(sticker_url)
         # Send Sticker
         if alert.sticker and sticker_url is not None:
-            self.send_sticker(bot_token, chat_id, sticker_url, max_attempts)
+            self.send_sticker(bot_token, chat_id, sticker_url, max_attempts, alert.sticker_notify)
 
         # Send Venue
         if alert.venue:
             self.send_venue(
-                bot_token, chat_id, lat, lng, message, max_attempts)
+                bot_token, chat_id, lat, lng, message, max_attempts, alert.venue_notify)
             return  # Don't send message or map
-
-        # Send Message
-        self.send_message(bot_token, chat_id, replace(message, dts))
 
         # Send Map
         if alert.map:
-            self.send_location(bot_token, chat_id, lat, lng, max_attempts)
+            self.send_location(bot_token, chat_id, lat, lng, max_attempts, alert.map_notify)
+
+        # Send Message
+        self.send_message(bot_token, chat_id, replace(message, dts))
 
     # Trigger an alert based on Pokemon info
     def pokemon_alert(self, mon_dts):
@@ -261,7 +261,7 @@ class TelegramAlarm(Alarm):
             log, self.connect, "Telegram (LOC)", self.send_webhook, args,
             max_attempts)
 
-    def send_venue(self, token, chat_id, lat, lng, message, max_attempts):
+    def send_venue(self, token, chat_id, lat, lng, message, max_attempts, notify=False):
         msg = message.split('\n', 1)
         args = {
             'url': "https://api.telegram.org/bot{}/sendVenue".format(
@@ -272,7 +272,7 @@ class TelegramAlarm(Alarm):
                 'title': msg[0],
                 'address': msg[1] if len(msg) > 1 else '',
                 'longitude': lng,
-                'disable_notification': False
+                'disable_notification': not notify
             }
         }
         try_sending(
