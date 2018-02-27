@@ -20,6 +20,14 @@ class MonFilter(BaseFilter):
             limit=BaseFilter.parse_as_set(
                 MonUtils.get_monster_id, 'monsters', data))
 
+        # Exclude Monsters - f.ignore_monsters not in m.monster_id
+        # Filter fails if match is found.
+        self.exclude_monster_ids = self.evaluate_attribute(  #
+            event_attribute='monster_id',
+            eval_func=lambda d, v: not operator.contains(d, v),
+            limit=BaseFilter.parse_as_set(
+                MonUtils.get_monster_id, 'ignore_monsters', data))
+
         # Distance
         self.min_dist = self.evaluate_attribute(  # f.min_dist <= m.distance
             event_attribute='distance', eval_func=operator.le,
@@ -85,15 +93,20 @@ class MonFilter(BaseFilter):
         self.forms = self.evaluate_attribute(  # f.forms in m.form_id
             event_attribute='form_id', eval_func=operator.contains,
             limit=BaseFilter.parse_as_set(int, 'form_ids', data))
+        # Costume  TODO: names
+        self.costumes = self.evaluate_attribute(  # f.costumes in m.costume_id
+            event_attribute='costume_id', eval_func=operator.contains,
+            limit=BaseFilter.parse_as_set(int, 'costume_ids', data))
 
         # Quick Move
         self.quick_moves = self.evaluate_attribute(  # f.q_ms contains m.q_m
-            event_attribute='quick_move_id', eval_func=operator.contains,
+            event_attribute='quick_id', eval_func=operator.contains,
             limit=BaseFilter.parse_as_set(
                 MonUtils.get_move_id, 'quick_moves', data))
+
         # Charge Move
         self.charge_moves = self.evaluate_attribute(  # f.c_ms contains m.c_m
-            event_attribute='charge_move_id', eval_func=operator.contains,
+            event_attribute='charge_id', eval_func=operator.contains,
             limit=BaseFilter.parse_as_set(
                 MonUtils.get_move_id, 'charge_moves', data))
 
@@ -129,7 +142,7 @@ class MonFilter(BaseFilter):
             limit=BaseFilter.parse_as_set(get_weather_id, 'weather', data))
 
         # Geofences
-        self.geofences = BaseFilter.parse_as_set(str, 'geofences', data)
+        self.geofences = BaseFilter.parse_as_list(str, 'geofences', data)
 
         # Custom DTS
         self.custom_dts = BaseFilter.parse_as_dict(
@@ -185,6 +198,9 @@ class MonFilter(BaseFilter):
         # Form
         if self.forms is not None:
             settings['forms'] = self.forms
+        # Costume
+        if self.forms is not None:
+            settings['costumes'] = self.costumes
 
         # Quick Move
         if self.quick_moves is not None:
