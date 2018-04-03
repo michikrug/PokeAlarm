@@ -982,7 +982,15 @@
     "719": "Diancie", 
     "720": "Hoopa", 
     "721": "Volcanion"
-  }, 
+  },
+  "rarity": {
+    "000": "New Spawn",
+    "001": "Common",
+    "002": "Uncommon",
+    "003": "Rare",
+    "004": "Very Rare",
+    "005": "Ultra Rare"
+  },
   "sizes": {
     "001": "tiny", 
     "002": "small", 

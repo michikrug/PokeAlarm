@@ -938,7 +938,15 @@
     "719": "Diancie", 
     "720": "Hoopa", 
     "721": "Volcanion"
-  }, 
+  },
+  "rarity": {
+    "000": "Nuevo engendro",
+    "001": "Comune",
+    "002": "Non Comune",
+    "003": "Raro",
+    "004": "Molto Rara",
+    "005": "Estremamente Raro"
+  },
   "sizes": {
     "001": "minuscolo", 
     "002": "piccolo", 
