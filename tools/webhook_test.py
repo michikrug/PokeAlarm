@@ -27,18 +27,25 @@ whtypes = {
     "2": "pokestop",
     "3": "gym",
     "4": "egg",
-    "5": "raid"
+    "5": "raid",
+    "6": "weather"
 }
 
 ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
 locales_file = glob(get_path('../locales/en.json'))[0]
 data = json.loads(open(locales_file, 'rb+').read())
 
-teams_formatted = re.sub('[{}",]', '', json.dumps(
-    data['teams'], indent=2, sort_keys=True))
+teams_formatted = re.sub(
+    r'[{}",]', '', json.dumps(data['teams'], indent=2, sort_keys=True))
 
-weather_formatted = re.sub('[{}",]', '', json.dumps(
-    data['weather'], indent=2, sort_keys=True))
+weather_formatted = re.sub(
+    r'[{}",]', '', json.dumps(data['weather'], indent=2, sort_keys=True))
+
+severity_formatted = re.sub(
+    r'[{}",]', '', json.dumps(data['severity'], indent=2, sort_keys=True))
+
+day_or_night_formatted = re.sub(
+    r'[{}",]', '', json.dumps(data['day_or_night'], indent=2, sort_keys=True))
 
 _cache = {}
 
@@ -132,6 +139,18 @@ def set_init(webhook_type):
                 "weather": 0
             }
         }
+    elif webhook_type == whtypes["6"]:
+        payloadr = {
+            "type": "weather",
+            "message": {
+                "s2_cell_id": current_time,
+                "latitude": 37.7876146,
+                "longitude": -122.390624,
+                "gameplay_weather": 0,
+                "severity": 0,
+                "world_time": 1
+            }
+        }
 
     return payloadr
 
@@ -188,7 +207,7 @@ def load_cache(file):
 
 def list_cache():
     path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    print "Here is a list of cache files found in \cache\ :"
+    print "Here is a list of cache files found in cache :"
     for file in os.listdir(os.path.join(path, "cache")):
         if file.endswith(".cache"):
             print file
@@ -203,7 +222,7 @@ def list_gyms():
                 i += 1
                 f.write("[{}] {} : {} \n".format(i, name, key))
             f.close()
-        print "Find list of gyms in your \\tools\ folder (gyms.txt)"
+        print "Find list of gyms in your tools folder (gyms.txt)"
         print "Enter gym id for raid (from file)\n>",
     else:
         print "Here is a list of gyms found in your cache:"
@@ -284,8 +303,8 @@ if url == '' or url.isspace():
 
 print "Does location matter or do you use geofences? (Y/N)\n>",
 if raw_input() in truthy:
-    regex_coordinates = re.compile("[-+]?[0-9]*\.?[0-9]*"
-                                   + "[ \t]*,[ \t]*" + "[-+]?[0-9]*\.?[0-9]*")
+    regex_coordinates = re.compile(
+        r"[-+]?[0-9]*\.?[0-9]*" + r"[ \t]*,[ \t]*" + r"[-+]?[0-9]*\.?[0-9]*")
     print "Enter latitude,longitude (Ex. 37.7876146,-122.390624)\n>",
     coordinates = raw_input()
     lat = payload["message"]["latitude"]
@@ -378,6 +397,16 @@ elif type == whtypes["5"]:
     print "What type of weather? (put in a number)\n" + \
           weather_formatted + "\n>",
     int_or_default("weather")
+elif type == whtypes["6"]:
+    print "What type of weather would you like to report? (Default: 0)\n" +\
+          weather_formatted + '\n>',
+    int_or_default("gameplay_weather")
+    print "What type of severity status would you like? (Default: 0)\n" \
+          + severity_formatted + '\n>',
+    int_or_default("severity")
+    print "Day or night? (Put in number, Default: 1)\n" + \
+          day_or_night_formatted + '\n>',
+    int_or_default("world_time")
 
 if type in ["4", "5"]:
     print "What level of raid/egg? (1-5)\n>",
