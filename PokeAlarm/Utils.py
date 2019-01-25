@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 # Standard Library Imports
-import configargparse
 from datetime import datetime, timedelta
 from glob import glob
 import json
@@ -9,14 +9,16 @@ import os
 import sys
 # 3rd Party Imports
 # Local Imports
-from . import config
+from PokeAlarm import not_so_secret_url
+from PokeAlarm import config
+from PokeAlarm import Unknown
 
 log = logging.getLogger('Utils')
 
 
-################################################### SYSTEM UTILITIES ###################################################
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SYSTEM UTILITIES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Checks is a line contains any subsititions located in args
+# Checks is a line contains any substitutions located in args
 def contains_arg(line, args):
     for word in args:
         if ('<' + word + '>') in line:
@@ -45,9 +47,9 @@ def parse_unicode(bytestring):
 
 
 # Used for lazy installs - installs required module with pip
-def pip_install(module, version):
+def pip_install(req, version):
     import subprocess
-    target = "{}=={}".format(module, version)
+    target = "{}=={}".format(req, version)
     log.info("Attempting to pip install %s..." % target)
     subprocess.call(['pip', 'install', target])
     log.info("%s install complete." % target)
@@ -58,7 +60,7 @@ def reject_leftover_parameters(dict_, location):
     if len(dict_) > 0:
         log.error("Unknown parameters at {}: ".format(location))
         log.error(dict_.keys())
-        log.error("Please consult the PokeAlarm documentation for accepted parameters.")
+        log.error("Please consult the PokeAlarm wiki for accepted parameters.")
         sys.exit(1)
 
 
@@ -68,16 +70,17 @@ def require_and_remove_key(key, _dict, location):
         return _dict.pop(key)
     else:
         log.error("The parameter '{}' is required for {}".format(key, location)
-                  + " Please check the PokeAlarm documentation for correct formatting.")
+                  + " Please check the PokeAlarm wiki for correct formatting.")
         sys.exit(1)
 
 
-########################################################################################################################
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-################################################## POKEMON UTILITIES ###################################################
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ POKEMON UTILITIES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-# Returns the id corresponding with the pokemon name (use all locales for flexibility)
+# Returns the id corresponding with the pokemon name
+# (use all locales for flexibility)
 def get_pkmn_id(pokemon_name):
     name = pokemon_name.lower()
     if not hasattr(get_pkmn_id, 'ids'):
@@ -109,7 +112,8 @@ def get_move_id(move_name):
     return get_move_id.ids.get(name)
 
 
-# Returns the id corresponding with the pokemon name (use all locales for flexibility)
+# Returns the id corresponding with the pokemon name
+# (use all locales for flexibility)
 def get_team_id(team_name):
     name = team_name.lower()
     if not hasattr(get_team_id, 'ids'):
@@ -123,6 +127,18 @@ def get_team_id(team_name):
                     nm = j[id_].lower()
                     get_team_id.ids[nm] = int(id_)
     return get_team_id.ids.get(name)
+
+
+# Returns the types of a move when requesting
+def get_move_type(move_id):
+    if not hasattr(get_move_type, 'info'):
+        get_move_type.info = {}
+        file_ = get_path('data/move_info.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for id_ in j:
+            get_move_type.info[int(id_)] = j[id_]['type']
+    return get_move_type.info.get(move_id, Unknown.SMALL)
 
 
 # Returns the damage of a move when requesting
@@ -214,7 +230,7 @@ def get_base_stats(pokemon_id):
     return get_base_stats.info.get(pokemon_id)
 
 
-# Returns a cp range for a certain level of a pokemon when hatched or caught in a raid
+# Returns a cp range for a certain level of a pokemon caught in a raid
 def get_pokemon_cp_range(pokemon_id, level):
     stats = get_base_stats(pokemon_id)
 
@@ -230,11 +246,11 @@ def get_pokemon_cp_range(pokemon_id, level):
 
     # minimum IV for a egg/raid pokemon is 10/10/10
     min_cp = int(
-        ((stats['attack'] + 10.0) * pow((stats['defense'] + 10.0), 0.5) * pow((stats['stamina'] + 10.0), 0.5) *
-         pow(cp_multi, 2)) / 10.0)
+        ((stats['attack'] + 10.0) * pow((stats['defense'] + 10.0), 0.5)
+         * pow((stats['stamina'] + 10.0), 0.5) * pow(cp_multi, 2)) / 10.0)
     max_cp = int(
-        ((stats['attack'] + 15.0) * pow((stats['defense'] + 15.0), 0.5) * pow((stats['stamina'] + 15.0), 0.5) *
-         pow(cp_multi, 2)) / 10.0)
+        ((stats['attack'] + 15.0) * pow((stats['defense'] + 15.0), 0.5) *
+         pow((stats['stamina'] + 15.0), 0.5) * pow(cp_multi, 2)) / 10.0)
 
     return min_cp, max_cp
 
@@ -246,19 +262,19 @@ def size_ratio(pokemon_id, height, weight):
     return height_ratio + weight_ratio
 
 
-# Returns the (appraisal) size of a pokemon:
+# Returns the appraised size_id of a pokemon
 def get_pokemon_size(pokemon_id, height, weight):
     size = size_ratio(pokemon_id, height, weight)
     if size < 1.5:
-        return 'tiny'
+        return 1
     elif size <= 1.75:
-        return 'small'
-    elif size < 2.25:
-        return 'normal'
+        return 2
+    elif size <= 2.25:
+        return 3
     elif size <= 2.5:
-        return 'large'
+        return 4
     else:
-        return 'big'
+        return 5
 
 
 # Returns the gender symbol of a pokemon:
@@ -272,21 +288,99 @@ def get_pokemon_gender(gender):
     return '?'  # catch all
 
 
-########################################################################################################################
+# Returns the types for a pokemon
+def get_base_types(pokemon_id):
+    if not hasattr(get_base_types, 'info'):
+        get_base_types.info = {}
+        file_ = get_path('data/base_stats.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+            for id_ in j:
+                get_base_types.info[int(id_)] = [
+                    j[id_].get('type1'),
+                    j[id_].get('type2')
+                ]
+    return get_base_types.info.get(pokemon_id)
 
-################################################# GMAPS API UTILITIES ##################################################
+
+# Returns the types for a pokemon
+def get_mon_type(pokemon_id):
+    types = get_base_types(pokemon_id)
+    return types['type1'], types['type2']
+
+
+# Return a boolean for whether the raid boss will have it's catch CP boosted
+def is_weather_boosted(pokemon_id, weather_id):
+    if not hasattr(is_weather_boosted, 'info'):
+        is_weather_boosted.info = {}
+        file_ = get_path('data/weather_boosts.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for w_id in j:
+            is_weather_boosted.info[w_id] = j[w_id]
+
+    boosted_types = is_weather_boosted.info.get(str(weather_id), {})
+    types = get_base_types(pokemon_id)
+    return types[0] in boosted_types or types[1] in boosted_types
+
+
+def get_weather_emoji(weather_id):
+    return {
+        1: u'☀️',
+        2: u'☔️',
+        3: u'⛅',
+        4: u'☁️',
+        5: u'💨',
+        6: u'⛄️',
+        7: u'🌁',
+    }.get(weather_id, '')
+
+
+def get_type_emoji(type_id):
+    return {
+        1: u'⭕',
+        2: u'🥋',
+        3: u'🐦',
+        4: u'☠',
+        5: u'⛰️',
+        6: u'💎',
+        7: u'🐛',
+        8: u'👻',
+        9: u'⚙',
+        10: u'🔥',
+        11: u'💧',
+        12: u'🍃',
+        13: u'⚡',
+        14: u'🔮',
+        15: u'❄',
+        16: u'🐲',
+        17: u'💫',
+        18: u'🌑'
+    }.get(type_id, '')
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GMAPS API UTILITIES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 # Returns a String link to Google Maps Pin at the location
 def get_gmaps_link(lat, lng):
-    latlng = '{},{}'.format(repr(lat), repr(lng))
+    latlng = '{:5f},{:5f}'.format(lat, lng)
     return 'http://maps.google.com/maps?q={}'.format(latlng)
 
 
 # Returns a String link to Apple Maps Pin at the location
 def get_applemaps_link(lat, lng):
-    latLon = '{},{}'.format(repr(lat), repr(lng))
-    return 'http://maps.apple.com/maps?daddr={}&z=10&t=s&dirflg=w'.format(latLon)
+    latlng = '{:5f},{:5f}'.format(lat, lng)
+    return 'http://maps.apple.com/maps?' \
+           + 'daddr={}&z=10&t=s&dirflg=w'.format(latlng)
+
+
+# Returns a String link to Waze Maps Navigation at the location
+def get_waze_link(lat, lng):
+    latlng = '{:5f},{:5f}'.format(lat, lng)
+    return 'https://waze.com/ul?navigate=yes&ll={}'.format(latlng)
 
 
 # Returns a static map url with <lat> and <lng> parameters for dynamic test
@@ -311,32 +405,32 @@ def get_static_map_url(settings, api_key=None):  # TODO: optimize formatting
 
     if api_key is not None:
         map_ += ('&key=%s' % api_key)
-        log.debug("API_KEY added to static map url.")
+        # log.debug("API_KEY added to static map url.")
     return map_
 
 
-########################################################################################################################
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-################################################## GENERAL UTILITIES ###################################################
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GENERAL UTILITIES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 
-# Returns a cardinal direction (N/NW/W/SW, etc) of the pokemon from the origin point, if set
+# Returns a cardinal direction (N/NW/W/SW, etc)
+# of the pokemon from the origin point, if set
 def get_cardinal_dir(pt_a, pt_b=None):
     if pt_b is None:
         return '?'
 
     lat1, lng1, lat2, lng2 = map(radians, [pt_b[0], pt_b[1], pt_a[0], pt_a[1]])
     directions = ["S", "SE", "E", "NE", "N", "NW", "W", "SW", "S"]
-    bearing = (degrees(atan2(cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lng2 - lng1),
-                             sin(lng2 - lng1) * cos(lat2))) + 450) % 360
+    bearing = (degrees(atan2(
+        cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lng2 - lng1),
+        sin(lng2 - lng1) * cos(lat2))) + 450) % 360
     return directions[int(round(bearing / 45))]
 
 
 # Return the distance formatted correctly
-def get_dist_as_str(dist):
-    if dist == 'unkn':
-        return 'unkn'
-    if config['UNITS'] == 'imperial':
+def get_dist_as_str(dist, units):
+    if units == 'imperial':
         if dist > 1760:  # yards per mile
             return "{:.1f}mi".format(dist / 1760.0)
         else:
@@ -349,20 +443,20 @@ def get_dist_as_str(dist):
 
 
 # Returns an integer representing the distance between A and B
-def get_earth_dist(pt_a, pt_b=None):
+def get_earth_dist(pt_a, pt_b=None, units='imperial'):
     if type(pt_a) is str or pt_b is None:
         return 'unkn'  # No location set
-    log.debug("Calculating distance from {} to {}".format(pt_a, pt_b))
     lat_a = radians(pt_a[0])
     lng_a = radians(pt_a[1])
     lat_b = radians(pt_b[0])
     lng_b = radians(pt_b[1])
     lat_delta = lat_b - lat_a
     lng_delta = lng_b - lng_a
-    a = sin(lat_delta / 2) ** 2 + cos(lat_a) * cos(lat_b) * sin(lng_delta / 2) ** 2
+    a = sin(lat_delta / 2) ** 2 + cos(lat_a) * \
+        cos(lat_b) * sin(lng_delta / 2) ** 2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     radius = 6373000  # radius of earth in meters
-    if config['UNITS'] == 'imperial':
+    if units == 'imperial':
         radius = 6975175  # radius of earth in yards
     dist = c * radius
     return dist
@@ -382,15 +476,56 @@ def get_time_as_str(t, timezone=None):
         disappear_time = datetime.now() + d
     # Time remaining in minutes and seconds
     time_left = "%dm %ds" % (m, s) if h == 0 else "%dh %dm" % (h, m)
-    # Dissapear time in 12h format, eg "2:30:16 PM"
-    time_12 = disappear_time.strftime("%I:%M:%S") + disappear_time.strftime("%p").lower()
-    # Dissapear time in 24h format including seconds, eg "14:30:16"
+    # Disappear time in 12h format, eg "2:30:16 PM"
+    time_12 = disappear_time.strftime("%I:%M:%S") \
+        + disappear_time.strftime("%p").lower()
+    # Disappear time in 24h format including seconds, eg "14:30:16"
     time_24 = disappear_time.strftime("%H:%M:%S")
     return time_left, time_12, time_24
 
 
-# Return the default url for images and stuff
-def get_image_url(image):
-    return "https://raw.githubusercontent.com/not4profit/images/master/" + image
+# Return the time in seconds
+def get_seconds_remaining(t, timezone=None):
+    if timezone is None:
+        timezone = config.get("TIMEZONE")
+    seconds = (t - datetime.utcnow()).total_seconds()
+    return seconds
 
-########################################################################################################################
+
+# Return the default url for images and stuff
+def get_image_url(suffix):
+    return not_so_secret_url + suffix
+
+
+# Returns the id corresponding with the weather
+# (use all locales for flexibility)
+def get_weather_id(weather_name):
+    try:
+        name = unicode(weather_name).lower()
+        if not hasattr(get_weather_id, 'ids'):
+            get_weather_id.ids = {}
+            files = glob(get_path('locales/*.json'))
+            for file_ in files:
+                with open(file_, 'r') as f:
+                    j = json.loads(f.read())
+                    j = j['weather']
+                    for id_ in j:
+                        nm = j[id_].lower()
+                        get_weather_id.ids[nm] = int(id_)
+        if name in get_weather_id.ids:
+            return get_weather_id.ids[name]
+        else:
+            return int(name)  # try as an integer
+    except ValueError:
+        raise ValueError("Unable to interpret `{}` as a valid "
+                         " weather name or id.".format(weather_name))
+
+
+# Returns true if any item is in the provided list
+def match_items_in_array(list, items):
+    for obj in list:
+        if obj in items:
+            return True
+    return False
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
