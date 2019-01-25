@@ -38,15 +38,15 @@ class QuestEvent(BaseEvent):
         self.custom_dts = {}
 
         # Quest Details
-        self.quest = data['quest']
-        self.reward = data['reward']
+        self.quest = data['quest_type']
+        self.reward = data['quest_reward_type']
         # To ensure Windows compatibility, epoch calculation is required
         self.expire_time = datetime.utcfromtimestamp(
             data.get(
                 'expire_time',
                 (datetime.combine(date.today(), time(23, 59)) -
                  datetime(1970, 1, 1)).total_seconds()))
-        self.reward_type = check_for_none(int, data.get('type'), 0)
+        self.reward_type = check_for_none(int, data.get('quest_reward_type'), 0)
 
     def generate_dts(self, locale, timezone, units):
         """ Return a dict with all the DTS for this event. """
