@@ -39,7 +39,7 @@ class QuestEvent(BaseEvent):
 
         # Quest Details
         self.quest = data['quest_type']
-        self.reward = data['quest_reward_type']
+        self.reward = data['quest_reward']
         # To ensure Windows compatibility, epoch calculation is required
         self.expire_time = datetime.utcfromtimestamp(
             data.get(
