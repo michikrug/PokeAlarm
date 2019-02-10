@@ -38,7 +38,7 @@ class QuestEvent(BaseEvent):
         self.custom_dts = {}
 
         # Quest Details
-        self.quest = data['quest_type']
+        self.quest = data['quest_task']
         self.reward = data['quest_reward']
         # To ensure Windows compatibility, epoch calculation is required
         self.expire_time = datetime.utcfromtimestamp(
