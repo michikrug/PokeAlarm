@@ -30,7 +30,7 @@ class Stop(Event):
 
     # Expiration
     expiration: datetime = EventAttr(
-        ['lure_expiration'], datetime.utcfromtimestamp)
+        ['incident_expiration'], datetime.utcfromtimestamp)
 
     @property
     def time_left(self) -> Optional[float]:

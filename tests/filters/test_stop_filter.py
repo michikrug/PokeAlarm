@@ -28,7 +28,7 @@ class TestStopFilter(unittest.TestCase):
             "latitude": 37.7876146,
             "longitude": -122.390624,
             "last_modified_time": 1572241600,
-            "lure_expiration": 1572241600,
+            "incident_expiration": 1572241600,
             "active_fort_modifier": 0
         }
         settings.update(values)
@@ -78,14 +78,14 @@ class TestStopFilter(unittest.TestCase):
         for s in [2000, 4000, 6000]:
             d = (datetime.now() + timedelta(seconds=s))
             t = time.mktime(d.timetuple())
-            event = self.gen_event({"lure_expiration": t})
+            event = self.gen_event({"incident_expiration": t})
             self.assertTrue(filt.check_event(event))
 
         # Test failing
         for s in [200, 999, 8001]:
             d = (datetime.now() + timedelta(seconds=s))
             t = time.mktime(d.timetuple())
-            event = self.gen_event({"lure_expiration": t})
+            event = self.gen_event({"incident_expiration": t})
             self.assertFalse(filt.check_event(event))
 
 

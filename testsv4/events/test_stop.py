@@ -15,7 +15,7 @@ def generic_stop(values):
         "latitude": 37.7876146,
         "longitude": -122.390624,
         "last_modified_time": 1572241600,
-        "lure_expiration": 1572241600,
+        "incident_expiration": 1572241600,
         "active_fort_modifier": 0
     }
     settings.update(values)
@@ -51,6 +51,6 @@ class TestStopEvent(unittest.TestCase):
     def test_time_left(self):
         future = datetime.utcnow() + timedelta(seconds=30)
         stop = generic_stop(
-            {'lure_expiration': calendar.timegm(future.timetuple())})
+            {'incident_expiration': calendar.timegm(future.timetuple())})
         self.assertTrue(isinstance(stop.time_left, float))
         self.assertTrue(0 == int(stop.time_left - 30))

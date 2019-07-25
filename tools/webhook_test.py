@@ -279,7 +279,7 @@ def reset_timers_and_encounters():
     elif payload["type"] == "pokestop":
         payload["message"].update({
             "last_modified_time": current_time,
-            "lure_expiration": current_time + 60,
+            "incident_expiration": current_time + 60,
         })
     elif payload["type"] == "gym":
         payload["message"].update({
