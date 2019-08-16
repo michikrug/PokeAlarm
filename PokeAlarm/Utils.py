@@ -510,6 +510,20 @@ def get_image_url(suffix):
     return not_so_secret_url + suffix
 
 
+def get_sticker_id(mon_id, form_id):
+    if not hasattr(get_sticker_id, 'info'):
+        get_sticker_id.info = {}
+        file_ = get_path('data/stickers.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for id_ in j:
+            get_sticker_id.info[id_] = j[id_]
+    combined_mon_id = mon_id
+    if form_id:
+        combined_mon_id += 'a'
+    return get_sticker_id.info.get(combined_mon_id)
+
+
 # Returns the id corresponding with the weather
 # (use all locales for flexibility)
 def get_weather_id(weather_name):

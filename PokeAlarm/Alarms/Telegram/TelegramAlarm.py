@@ -7,7 +7,7 @@ from collections import namedtuple
 # Local Imports
 from PokeAlarm.Alarms import Alarm
 from PokeAlarm.Utilities import GenUtils as utils
-from PokeAlarm.Utils import require_and_remove_key, get_image_url
+from PokeAlarm.Utils import require_and_remove_key, get_image_url, get_sticker_id
 
 # 2 lazy 2 type
 try_sending = Alarm.try_sending
@@ -198,10 +198,16 @@ class TelegramAlarm(Alarm):
         lat, lng = dts['lat'], dts['lng']
         max_attempts = alert.max_attempts
         sticker_url = replace(alert.sticker_url, dts)
-        self._log.debug(sticker_url)
-        # Send Sticker
-        if alert.sticker and sticker_url is not None:
-            self.send_sticker(bot_token, chat_id, sticker_url, max_attempts)
+        sticker_id = get_sticker_id(dts['mon_id_3'], dts['form_id'])
+        if alert.sticker:
+            if dts['mon_id']:
+                # Send Mon Sticker
+                if sticker_id is not None:
+                    self.send_sticker(bot_token, chat_id, sticker_id, max_attempts)
+            else:
+                # Send Sticker
+                if sticker_url is not None:
+                    self.send_sticker(bot_token, chat_id, sticker_url, max_attempts)
 
         # Send Venue
         if alert.venue:
