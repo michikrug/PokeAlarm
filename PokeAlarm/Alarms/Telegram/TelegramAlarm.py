@@ -197,15 +197,15 @@ class TelegramAlarm(Alarm):
         message = replace(alert.message, dts)
         lat, lng = dts['lat'], dts['lng']
         max_attempts = alert.max_attempts
-        sticker_url = replace(alert.sticker_url, dts)
-        sticker_id = get_sticker_id(dts['mon_id_3'], dts['form_id'])
         if alert.sticker:
-            if dts['mon_id']:
+            if 'mon_id' in dts:
                 # Send Mon Sticker
+                sticker_id = get_sticker_id(dts['mon_id_3'], dts['form_id'])
                 if sticker_id is not None:
                     self.send_sticker(bot_token, chat_id, sticker_id, max_attempts)
             else:
                 # Send Sticker
+                sticker_url = replace(alert.sticker_url, dts)
                 if sticker_url is not None:
                     self.send_sticker(bot_token, chat_id, sticker_url, max_attempts)
 
