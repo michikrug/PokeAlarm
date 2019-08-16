@@ -28,14 +28,14 @@ def exchange_set(settings):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print "usage: convert_alarms_file.py /path/to/alarms.json"
+        print ("usage: convert_alarms_file.py /path/to/alarms.json")
         print ("This utility will rename your old file and write "
                "a converted one in it's place")
         exit(0)
 
     contents = None
     try:
-        print "Loading alarms file from {}.".format(sys.argv[1])
+        print ("Loading alarms file from {}.".format(sys.argv[1]))
         with open(sys.argv[1], 'r') as f:
             contents = json.load(f, object_pairs_hook=OrderedDict)
     except ValueError as e:
@@ -51,15 +51,15 @@ if __name__ == '__main__':
         exit()
 
     output = OrderedDict()
-    print "Processing file..."
+    print ("Processing file...")
     for i in range(len(contents)):
         output["alarm_{}".format(i)] = exchange_set(contents[i])
 
     try:
         old_path = sys.argv[1] + ".old"
-        print "Renaming old file to {}.".format(old_path)
+        print ("Renaming old file to {}.".format(old_path))
         os.rename(sys.argv[1], old_path)
-        print "Writing to new file at {}.".format(sys.argv[1])
+        print ("Writing to new file at {}.".format(sys.argv[1]))
         with open(sys.argv[1], 'w') as f:
             json.dump(output, f, indent=4)
     except IOError as e:
