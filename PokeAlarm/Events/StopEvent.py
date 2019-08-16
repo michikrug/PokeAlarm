@@ -19,7 +19,7 @@ class StopEvent(BaseEvent):
         self.stop_id = data['pokestop_id']
 
         # Time left
-        self.expiration = data['incident_expiration']
+        self.expiration = data['incident_expiration'] if 'incident_expiration' in data else None
         self.time_left = None
         if self.expiration is not None:
             self.expiration = datetime.utcfromtimestamp(self.expiration)
