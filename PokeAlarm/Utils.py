@@ -518,9 +518,9 @@ def get_sticker_id(mon_id, form_id):
             j = json.loads(f.read())
         for id_ in j:
             get_sticker_id.info[id_] = j[id_]
-    if form_id:
-        mon_id = mon_id + 'a'
-    return get_sticker_id.info.get(mon_id)
+    if form_id > 0:
+        mon_id = str(mon_id) + 'a'
+    return get_sticker_id.info.get(str(mon_id))
 
 
 # Returns the id corresponding with the weather
