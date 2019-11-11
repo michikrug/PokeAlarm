@@ -734,39 +734,39 @@ def get_grunt_type(grunt_type):
     if grunt_type is 4 or grunt_type is 5:
         return 'Random'
     if grunt_type is 6 or grunt_type is 7:
-        return 'Bug'
+        return '007'
     if grunt_type is 8 or grunt_type is 9:
-        return 'Ghost'
+        return '008'
     if grunt_type is 10 or grunt_type is 11:
-        return 'Dark'
+        return '018'
     if grunt_type is 12 or grunt_type is 13:
-        return 'Dragon'
+        return '016'
     if grunt_type is 14 or grunt_type is 15:
-        return 'Fairy'
+        return '017'
     if grunt_type is 16 or grunt_type is 17:
-        return 'Fighting'
+        return '002'
     if grunt_type is 18 or grunt_type is 19:
-        return 'Fire'
+        return '010'
     if grunt_type is 20 or grunt_type is 21:
-        return 'Flying'
+        return '003'
     if grunt_type is 22 or grunt_type is 23:
-        return 'Grass'
+        return '012'
     if grunt_type is 24 or grunt_type is 25:
-        return 'Ground'
+        return '005'
     if grunt_type is 26 or grunt_type is 27:
-        return 'Ice'
+        return '015'
     if grunt_type is 28 or grunt_type is 29:
-        return 'Metal'
+        return '009'
     if grunt_type is 30 or grunt_type is 31:
-        return 'Normal'
+        return '001'
     if grunt_type is 32 or grunt_type is 33:
-        return 'Poison'
+        return '004'
     if grunt_type is 34 or grunt_type is 35:
-        return 'Psychic'
+        return '014'
     if grunt_type is 36 or grunt_type is 37:
-        return 'Rock'
+        return '006'
     if grunt_type is 38 or grunt_type is 39:
-        return 'Water'
+        return '011'
     return 'None'
 
 
