@@ -732,42 +732,42 @@ def form_mapper(mon_id, form_id):
 
 def get_grunt_type(grunt_type):
     if grunt_type is 4 or grunt_type is 5:
-        return 'Random'
+        return 100
     if grunt_type is 6 or grunt_type is 7:
-        return '007'
+        return 7
     if grunt_type is 8 or grunt_type is 9:
-        return '008'
+        return 8
     if grunt_type is 10 or grunt_type is 11:
-        return '018'
+        return 18
     if grunt_type is 12 or grunt_type is 13:
-        return '016'
+        return 16
     if grunt_type is 14 or grunt_type is 15:
-        return '017'
+        return 17
     if grunt_type is 16 or grunt_type is 17:
-        return '002'
+        return 2
     if grunt_type is 18 or grunt_type is 19:
-        return '010'
+        return 10
     if grunt_type is 20 or grunt_type is 21:
-        return '003'
+        return 3
     if grunt_type is 22 or grunt_type is 23:
-        return '012'
+        return 12
     if grunt_type is 24 or grunt_type is 25:
-        return '005'
+        return 5
     if grunt_type is 26 or grunt_type is 27:
-        return '015'
+        return 15
     if grunt_type is 28 or grunt_type is 29:
-        return '009'
+        return 9
     if grunt_type is 30 or grunt_type is 31:
-        return '001'
+        return 1
     if grunt_type is 32 or grunt_type is 33:
-        return '004'
+        return 4
     if grunt_type is 34 or grunt_type is 35:
-        return '014'
+        return 14
     if grunt_type is 36 or grunt_type is 37:
-        return '006'
+        return 6
     if grunt_type is 38 or grunt_type is 39:
-        return '011'
-    return 'None'
+        return 11
+    return 101
 
 
 # Returns the id corresponding with the weather

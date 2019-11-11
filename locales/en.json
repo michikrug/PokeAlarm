@@ -452,7 +452,7 @@
     "317": "Blaze Kick",
     "318": "Razor Shell",
     "319": "Power-Up Punch",
-    "320": "Charm"	
+    "320": "Charm"
   },
   "pokemon": {
     "001": "Bulbasaur",
@@ -1226,7 +1226,9 @@
     "015": "Ice",
     "016": "Dragon",
     "017": "Fairy",
-    "018": "Dark"
+    "018": "Dark",
+    "100": "Random",
+    "101": "Unknown"
   },
   "weather": {
     "000": "None",
