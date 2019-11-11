@@ -729,6 +729,47 @@ def form_mapper(mon_id, form_id):
 
     return mon_form
 
+
+def get_grunt_type(grunt_type):
+    if grunt_type is 4 or grunt_type is 5:
+        return 'Random'
+    if grunt_type is 6 or grunt_type is 7:
+        return 'Bug'
+    if grunt_type is 8 or grunt_type is 9:
+        return 'Ghost'
+    if grunt_type is 10 or grunt_type is 11:
+        return 'Dark'
+    if grunt_type is 12 or grunt_type is 13:
+        return 'Dragon'
+    if grunt_type is 14 or grunt_type is 15:
+        return 'Fairy'
+    if grunt_type is 16 or grunt_type is 17:
+        return 'Fighting'
+    if grunt_type is 18 or grunt_type is 19:
+        return 'Fire'
+    if grunt_type is 20 or grunt_type is 21:
+        return 'Flying'
+    if grunt_type is 22 or grunt_type is 23:
+        return 'Grass'
+    if grunt_type is 24 or grunt_type is 25:
+        return 'Ground'
+    if grunt_type is 26 or grunt_type is 27:
+        return 'Ice'
+    if grunt_type is 28 or grunt_type is 29:
+        return 'Metal'
+    if grunt_type is 30 or grunt_type is 31:
+        return 'Normal'
+    if grunt_type is 32 or grunt_type is 33:
+        return 'Poison'
+    if grunt_type is 34 or grunt_type is 35:
+        return 'Psychic'
+    if grunt_type is 36 or grunt_type is 37:
+        return 'Rock'
+    if grunt_type is 38 or grunt_type is 39:
+        return 'Water'
+    return 'None'
+
+
 # Returns the id corresponding with the weather
 # (use all locales for flexibility)
 def get_weather_id(weather_name):

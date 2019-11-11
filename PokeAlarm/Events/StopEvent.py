@@ -5,7 +5,8 @@ from datetime import datetime
 from PokeAlarm import Unknown
 from . import BaseEvent
 from PokeAlarm.Utils import get_gmaps_link, get_applemaps_link, \
-    get_waze_link, get_time_as_str, get_seconds_remaining, get_dist_as_str
+    get_waze_link, get_time_as_str, get_seconds_remaining, get_dist_as_str, \
+    get_grunt_type
 
 
 class StopEvent(BaseEvent):
@@ -17,6 +18,9 @@ class StopEvent(BaseEvent):
 
         # Identification
         self.stop_id = data['pokestop_id']
+
+        self.grunt_type = get_grunt_type(
+            data['incident_grunt_type']) if 'incident_grunt_type' in data else None
 
         # Time left
         self.expiration = data['incident_expiration'] if 'incident_expiration' in data else None
@@ -56,6 +60,9 @@ class StopEvent(BaseEvent):
             'time_left_raw_hours': time[6],
             'time_left_raw_minutes': time[7],
             'time_left_raw_seconds': time[8],
+
+            # Grunt Type
+            'grunt_type': locale.get_type_name(self.grunt_type),
 
             # Location
             'lat': self.lat,

@@ -32,6 +32,8 @@ class Stop(Event):
     expiration: datetime = EventAttr(
         ['incident_expiration'], datetime.utcfromtimestamp)
 
+    grunt_type: int = EventAttr(['incident_grunt_type'], int)
+
     @property
     def time_left(self) -> Optional[float]:
         if not self.expiration:
