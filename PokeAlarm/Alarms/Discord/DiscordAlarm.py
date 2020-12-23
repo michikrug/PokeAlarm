@@ -35,8 +35,8 @@ class DiscordAlarm(Alarm):
         'stops': {
             'username': "Pokestop",
             'content': "",
-            'icon_url': get_image_url("regular/stop/ready.png"),
-            'avatar_url': get_image_url("regular/stop/ready.png"),
+            'icon_url': get_image_url("regular/stop/<lure_type_id_3>.png"),
+            'avatar_url': get_image_url("regular/stop/<lure_type_id_3>.png"),
             'title': "Someone has placed a lure on a Pokestop!",
             'url': "<gmaps>",
             'body': "Lure will expire at <24h_time> (<time_left>)."
@@ -86,11 +86,22 @@ class DiscordAlarm(Alarm):
         'quests': {
             'username': "Quest",
             'content': "",
-            'icon_url': get_image_url("regular/quest/<type_id>.png"),
-            'avatar_url': get_image_url("regular/quest/<type_id>.png"),
+            'icon_url': get_image_url("regular/<quest_image>.png"),
+            'avatar_url': get_image_url("regular/<quest_image>.png"),
             'title': "New Quest Found!",
             'url': "<gmaps>",
-            'body': "Quest will expire in <time_remaining>"
+            'body': "Do this: <quest_task>\nFor this: <reward>"
+        },
+        'invasions': {
+            'username': "Invasion",
+            'content': "",
+            'icon_url':
+                get_image_url("regular/invasions/<type_id_3>.png"),
+            'avatar_url':
+                get_image_url("regular/invasions/<type_id_3>.png"),
+            'title': "This Pokestop has been invaded by Team Rocket!",
+            'url': "<gmaps>",
+            'body': "Invasion will expire at <24h_time> (<time_left>)."
         }
     }
 
@@ -126,6 +137,8 @@ class DiscordAlarm(Alarm):
             settings.pop('weather', {}), self._defaults['weather'])
         self.__quests = self.create_alert_settings(
             settings.pop('quests', {}), self._defaults['quests'])
+        self.__invasions = self.create_alert_settings(
+            settings.pop('invasions', {}), self._defaults['invasions'])
 
         # Warn user about leftover parameters
         reject_leftover_parameters(settings, "'Alarm level in Discord alarm.")
@@ -152,6 +165,7 @@ class DiscordAlarm(Alarm):
 
     # Set the appropriate settings for each alert
     def create_alert_settings(self, settings, default):
+        map = settings.pop('map', self.__map)
         alert = {
             'webhook_url': settings.pop('webhook_url', self.__webhook_url),
             'username': settings.pop('username', default['username']),
@@ -163,8 +177,9 @@ class DiscordAlarm(Alarm):
             'title': settings.pop('title', default['title']),
             'url': settings.pop('url', default['url']),
             'body': settings.pop('body', default['body']),
-            'map': get_static_map_url(
-                settings.pop('map', self.__map), self.__static_map_key)
+            'fields': settings.pop('fields', []),
+            'map': map if isinstance(map, str) else
+            get_static_map_url(map, self.__static_map_key)
         }
 
         reject_leftover_parameters(settings, "'Alert level in Discord alarm.")
@@ -184,7 +199,8 @@ class DiscordAlarm(Alarm):
                 'title': replace(alert['title'], info),
                 'url': replace(alert['url'], info),
                 'description': replace(alert['body'], info),
-                'thumbnail': {'url': replace(alert['icon_url'], info)}
+                'thumbnail': {'url': replace(alert['icon_url'], info)},
+                'fields': self.replace_fields(alert['fields'], info)
             }]
             if alert['map'] is not None:
                 coords = {
@@ -192,7 +208,11 @@ class DiscordAlarm(Alarm):
                     'lng': info['lng']
                 }
                 payload['embeds'][0]['image'] = {
-                    'url': replace(alert['map'], coords)
+                    'url':
+                        replace(alert['map'],
+                                coords if not
+                                isinstance(alert['map'], str)
+                                else info)
                 }
         args = {
             'url': replace(alert['webhook_url'], info),
@@ -234,6 +254,10 @@ class DiscordAlarm(Alarm):
         self._log.debug("Quest notification triggered.")
         self.send_alert(self.__quests, quest_info)
 
+    def invasion_alert(self, invasion_info):
+        self._log.debug("Invasion notification triggered.")
+        self.send_alert(self.__invasions, invasion_info)
+
     # Send a payload to the webhook url
     def send_webhook(self, url, payload):
         self._log.debug(payload)
@@ -246,3 +270,14 @@ class DiscordAlarm(Alarm):
             raise requests.exceptions.RequestException(
                 "Response received {}, webhook not accepted.".format(
                     resp.status_code))
+
+    @staticmethod
+    def replace_fields(fields, pkinfo):
+        replaced_fields = []
+        for field in fields:
+            replaced_fields.append({
+                'name': replace(field['name'], pkinfo),
+                'value': replace(field['value'], pkinfo),
+                'inline': field.get('inline', False)
+            })
+        return replaced_fields

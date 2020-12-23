@@ -29,6 +29,8 @@ for Events, each with different information:
    egg-events
    raid-events
    weather-events
+   invasion-events
+   quest-events
 
 .. _events_dts:
 

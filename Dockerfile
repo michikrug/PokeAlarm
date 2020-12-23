@@ -6,7 +6,7 @@
 # Change "RocketMap" to the name of your RocketMap docker
 # For newer versions of docker maybe you have to change --net to --network
 
-FROM python:2.7-alpine
+FROM python:3.7-alpine
 
 # Default port the webserver runs on
 EXPOSE 4000
@@ -15,7 +15,7 @@ EXPOSE 4000
 WORKDIR /usr/src/app
 
 # Set Entrypoint with hard-coded options
-ENTRYPOINT ["python", "./start_pokealarm.py", "--host", "0.0.0.0"]
+ENTRYPOINT ["python",  "-u", "./start_pokealarm.py", "--host", "0.0.0.0", "--port", "4000"]
 
 # Install required system packages
 RUN apk add --no-cache ca-certificates
@@ -23,7 +23,7 @@ RUN apk add --no-cache bash git openssh
 
 COPY requirements.txt /usr/src/app/
 
-RUN apk add --no-cache build-base \
+RUN apk update && apk add --no-cache build-base \
  && pip install --no-cache-dir -r requirements.txt \
  && apk del build-base
 

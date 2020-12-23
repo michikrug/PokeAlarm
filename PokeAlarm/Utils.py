@@ -41,11 +41,6 @@ def parse_boolean(val):
     return None
 
 
-def parse_unicode(bytestring):
-    decoded_string = bytestring.decode(sys.getfilesystemencoding())
-    return decoded_string
-
-
 # Used for lazy installs - installs required module with pip
 def pip_install(req, version):
     import subprocess
@@ -55,11 +50,11 @@ def pip_install(req, version):
     log.info("%s install complete." % target)
 
 
-# Used to exit when leftover parameters are founds
+# Used to exit when leftover parameters are found
 def reject_leftover_parameters(dict_, location):
     if len(dict_) > 0:
         log.error("Unknown parameters at {}: ".format(location))
-        log.error(dict_.keys())
+        log.error(list(dict_.keys()))
         log.error("Please consult the PokeAlarm wiki for accepted parameters.")
         sys.exit(1)
 
@@ -230,6 +225,53 @@ def get_base_stats(pokemon_id):
     return get_base_stats.info.get(pokemon_id)
 
 
+# Returns possible evolutions for a pokemon
+def get_evolutions(pokemon_id):
+    if not hasattr(get_evolutions, 'info'):
+        get_evolutions.info = {}
+        file_ = get_path('data/base_stats.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for id_ in j:
+            get_evolutions.info[int(id_)] = j[id_].get('evolutions')
+    return get_evolutions.info.get(pokemon_id)
+
+
+# Return CP multipliers
+def get_cp_multipliers():
+    if not hasattr(get_cp_multipliers, 'info'):
+        file_ = get_path('data/cp_multipliers.json')
+        with open(file_, 'r') as f:
+            get_cp_multipliers.info = json.load(f)
+    return get_cp_multipliers.info
+
+
+# Returns the highest possible stat product for PvP great league for a pkmn
+def get_great_product(pokemon_id):
+    if not hasattr(get_great_product, 'info'):
+        get_great_product.info = {}
+        file_ = get_path('data/base_stats.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for id_ in j:
+            get_great_product.info[int(id_)] = j[id_].get('1500_product')
+
+    return get_great_product.info.get(pokemon_id)
+
+
+# Returns the highest possible stat product for PvP ultra league for a pkmn
+def get_ultra_product(pokemon_id):
+    if not hasattr(get_ultra_product, 'info'):
+        get_ultra_product.info = {}
+        file_ = get_path('data/base_stats.json')
+        with open(file_, 'r') as f:
+            j = json.loads(f.read())
+        for id_ in j:
+            get_ultra_product.info[int(id_)] = j[id_].get('2500_product')
+
+    return get_ultra_product.info.get(pokemon_id)
+
+
 # Returns a cp range for a certain level of a pokemon caught in a raid
 def get_pokemon_cp_range(pokemon_id, level):
     stats = get_base_stats(pokemon_id)
@@ -280,11 +322,11 @@ def get_pokemon_size(pokemon_id, height, weight):
 # Returns the gender symbol of a pokemon:
 def get_pokemon_gender(gender):
     if gender == 1:
-        return u'\u2642'  # male symbol
+        return '\u2642'  # male symbol
     elif gender == 2:
-        return u'\u2640'  # female symbol
+        return '\u2640'  # female symbol
     elif gender == 3:
-        return u'\u26b2'  # neutral
+        return '\u26b2'  # neutral
     return '?'  # catch all
 
 
@@ -326,38 +368,60 @@ def is_weather_boosted(pokemon_id, weather_id):
 
 def get_weather_emoji(weather_id):
     return {
-        1: u'☀️',
-        2: u'☔️',
-        3: u'⛅',
-        4: u'☁️',
-        5: u'💨',
-        6: u'⛄️',
-        7: u'🌁',
+        1: '☀️',
+        2: '☔️',
+        3: '⛅',
+        4: '☁️',
+        5: '💨',
+        6: '⛄️',
+        7: '🌁',
     }.get(weather_id, '')
 
 
 def get_type_emoji(type_id):
     return {
-        1: u'⭕',
-        2: u'🥋',
-        3: u'🐦',
-        4: u'☠',
-        5: u'⛰️',
-        6: u'💎',
-        7: u'🐛',
-        8: u'👻',
-        9: u'⚙',
-        10: u'🔥',
-        11: u'💧',
-        12: u'🍃',
-        13: u'⚡',
-        14: u'🔮',
-        15: u'❄',
-        16: u'🐲',
-        17: u'💫',
-        18: u'🌑'
+        1: '⭕',
+        2: '🥋',
+        3: '🐦',
+        4: '☠',
+        5: '⛰️',
+        6: '💎',
+        7: '🐛',
+        8: '👻',
+        9: '⚙',
+        10: '🔥',
+        11: '💧',
+        12: '🍃',
+        13: '⚡',
+        14: '🔮',
+        15: '❄',
+        16: '🐲',
+        17: '💫',
+        18: '🌑'
     }.get(type_id, '')
 
+
+def get_spawn_verified_emoji(spawn_verified_id):
+    return {
+        0: '❌',
+        1: '✅',
+    }.get(spawn_verified_id, '❔')
+
+
+def get_team_emoji(team_id):
+    return {
+        0: '⚪',
+        1: '🔵',
+        2: '🔴',
+        3: '🟡',
+    }.get(team_id, '❔')
+
+
+def get_ex_eligible_emoji(ex_eligible):
+    return {
+        0: '',
+        1: '✉️',
+    }.get(ex_eligible, '')
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -774,7 +838,7 @@ def get_grunt_type(grunt_type):
 # (use all locales for flexibility)
 def get_weather_id(weather_name):
     try:
-        name = unicode(weather_name).lower()
+        name = str(weather_name).lower()
         if not hasattr(get_weather_id, 'ids'):
             get_weather_id.ids = {}
             files = glob(get_path('locales/*.json'))

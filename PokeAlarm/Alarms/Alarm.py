@@ -68,13 +68,17 @@ class Alarm(object):
     def quest_alert(self, pokequest_info):
         raise NotImplementedError('Quest Alert is not implemented.')
 
+    # Trigger an alert when a Pokestop is invaded
+    def invasion_alert(self, invasion_info):
+        raise NotImplementedError('Invasion Alert is not implemented.')
+
     # Return a version of the string with the correct substitutions made
     @staticmethod
     def replace(string, pkinfo):
         if string is None:
             return None
 
-        s = string.encode('utf-8')
+        s = string
         for key in pkinfo:
             s = s.replace("<{}>".format(key), str(pkinfo[key]))
         return s

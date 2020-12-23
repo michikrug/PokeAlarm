@@ -16,6 +16,7 @@ _build
 *.txt
 !data/*.json
 !locales/*.json
+docker-compose.yml
 
 # Runtime
 cache/*

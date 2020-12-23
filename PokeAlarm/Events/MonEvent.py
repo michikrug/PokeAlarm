@@ -1,15 +1,17 @@
 # Standard Library Imports
+import re
 from datetime import datetime
+from urllib.parse import urlencode
 # 3rd Party Imports
 # Local Imports
 from PokeAlarm import Unknown
-from PokeAlarm.Utilities import MonUtils
+from PokeAlarm.Utilities import MonUtils, PvpUtils
 from PokeAlarm.Utils import (
     get_gmaps_link, get_move_type, get_move_damage, get_move_dps,
     get_move_duration, get_move_energy, get_pokemon_size,
     get_applemaps_link, get_time_as_str, get_seconds_remaining,
     get_base_types, get_dist_as_str, get_weather_emoji,
-    get_type_emoji, get_waze_link)
+    get_spawn_verified_emoji, get_type_emoji, get_waze_link)
 from . import BaseEvent
 
 
@@ -34,7 +36,8 @@ class MonEvent(BaseEvent):
             int, data.get('spawn_start'), Unknown.REGULAR)
         self.spawn_end = check_for_none(
             int, data.get('spawn_end'), Unknown.REGULAR)
-        self.spawn_verified = check_for_none(bool, data.get('verified'), False)
+        self.spawn_verified = check_for_none(
+            int, data.get('verified'), Unknown.REGULAR)
 
         # Location
         self.lat = float(data['latitude'])
@@ -62,8 +65,22 @@ class MonEvent(BaseEvent):
         if Unknown.is_not(self.atk_iv, self.def_iv, self.sta_iv):
             self.iv = \
                 100 * (self.atk_iv + self.def_iv + self.sta_iv) / float(45)
+            (self.great_product, self.great_id, self.great_cp,
+             self.great_level, self.ultra_product, self.ultra_id,
+             self.ultra_cp, self.ultra_level) = \
+                PvpUtils.get_pvp_info(
+                    self.monster_id, self.atk_iv, self.def_iv, self.sta_iv,
+                    self.mon_lvl)
         else:
             self.iv = Unknown.SMALL
+            self.great_product = Unknown.SMALL
+            self.ultra_product = Unknown.SMALL
+            self.great_id = self.monster_id
+            self.ultra_id = self.monster_id
+            self.great_cp = Unknown.SMALL
+            self.ultra_cp = Unknown.SMALL
+            self.great_level = Unknown.SMALL
+            self.ultra_level = Unknown.SMALL
 
         # Quick Move
         self.quick_id = check_for_none(
@@ -159,7 +176,17 @@ class MonEvent(BaseEvent):
             # Spawn Data
             'spawn_start': self.spawn_start,
             'spawn_end': self.spawn_end,
-            'spawn_verified': self.spawn_verified,
+            'spawn_verified':
+                self.spawn_verified > 0 if Unknown.is_not(self.spawn_verified)
+                else Unknown.REGULAR,
+            'spawn_verified_emoji': get_spawn_verified_emoji(
+                self.spawn_verified),
+            'spawn_verified_emoji_or_empty': (
+                '' if self.spawn_verified != 1
+                else get_spawn_verified_emoji(self.spawn_verified)),
+            'spawn_unverified_emoji_or_empty': (
+                '' if self.spawn_verified != 0
+                else get_spawn_verified_emoji(self.spawn_verified)),
 
             # Location
             'lat': self.lat,
@@ -209,6 +236,67 @@ class MonEvent(BaseEvent):
             'def': self.def_iv,
             'sta': self.sta_iv,
 
+            # PVP Information
+            'great_mon_id': self.great_id,
+            'great_product': self.great_product,
+            'great_mon_name': locale.get_pokemon_name(self.great_id),
+            'great_cp': self.great_cp,
+            'great_level': self.great_level,
+            'great_url': 'https://www.stadiumgaming.gg/rank-checker?'
+                + urlencode({
+                    'pokemon': re.sub(r'[^A-Za-z0-9\s]+', '',
+                                      locale.get_english_pokemon_name(
+                                          self.great_id)),
+                    'league': '1500',
+                    'att_iv': self.atk_iv,
+                    'def_iv': self.def_iv,
+                    'hp_iv': self.sta_iv,
+                    'min_iv': '0',
+                    'include-best-buddy': 'false'
+                }),
+            'great_pvpoke':
+                'https://pvpoke.com/rankings/all/1500/overall/{}{}/'.format(
+                    re.sub(r'[^A-Za-z0-9\s]+', '',
+                           locale.get_english_pokemon_name(self.great_id))
+                    .lower().replace(' ', '_'),
+                    '_' + re.sub(r'[^A-Za-z0-9\s]+', '',
+                                 locale.get_english_form_name(
+                                     self.great_id, self.form_id)
+                                 .lower().replace(' ', '_'))
+                    if not any(x in locale.get_english_form_name(
+                        self.great_id, self.form_id)
+                        for x in ['unknown', 'Normal'])
+                    else ''),
+            'ultra_mon_id': self.ultra_id,
+            'ultra_product': self.ultra_product,
+            'ultra_mon_name': locale.get_pokemon_name(self.ultra_id),
+            'ultra_cp': self.ultra_cp,
+            'ultra_level': self.ultra_level,
+            'ultra_url': 'https://www.stadiumgaming.gg/rank-checker?'
+                + urlencode({
+                    'pokemon': re.sub(r'[^A-Za-z0-9\s]+', '',
+                                      locale.get_english_pokemon_name(
+                                          self.ultra_id)),
+                    'league': '2500',
+                    'att_iv': self.atk_iv,
+                    'def_iv': self.def_iv,
+                    'hp_iv': self.sta_iv,
+                    'min_iv': '0',
+                    'include-best-buddy': 'false'
+                }),
+            'ultra_pvpoke':
+                'https://pvpoke.com/rankings/all/2500/overall/{}{}/'.format(
+                    re.sub(r'[^A-Za-z0-9\s]+', '',
+                           locale.get_english_pokemon_name(self.ultra_id))
+                    .lower().replace(' ', '_'),
+                    '_' + re.sub(r'[^A-Za-z0-9\s]+', '',
+                                 locale.get_english_form_name(
+                                     self.ultra_id, self.form_id)
+                                 .lower().replace(' ', '_'))
+                    if not any(x in locale.get_english_form_name(
+                        self.ultra_id, self.form_id)
+                        for x in ['unknown', 'Normal'])
+                    else ''),
             # Type
             'type1': type1,
             'type1_or_empty': Unknown.or_empty(type1),
@@ -236,6 +324,7 @@ class MonEvent(BaseEvent):
             'costume': costume_name,
             'costume_or_empty': Unknown.or_empty(costume_name),
             'costume_id': self.costume_id,
+            'costume_id_2': "{:02d}".format(self.costume_id),
             'costume_id_3': "{:03d}".format(self.costume_id),
 
             # Quick Move

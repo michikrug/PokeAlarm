@@ -33,6 +33,7 @@ class FileCache(Cache):
                 data = pickle.load(f)
                 self._mon_hist = data.get('mon_hist', {})
                 self._stop_hist = data.get('stop_hist', {})
+                self._grunt_hist = data.get('grunt_hist', {})
                 self._egg_hist = data.get('egg_hist', {})
                 self._raid_hist = data.get('raid_hist', {})
                 self._gym_team = data.get('gym_team', {})
@@ -42,8 +43,8 @@ class FileCache(Cache):
                 self._cell_weather_id = data.get('cell_weather_id', {})
                 self._severity_id = data.get('severity_id', {})
                 self._day_or_night_id = data.get('day_or_night_id', {})
-                self._reward = data.get('reward', {})
-                self._task = data.get('task', {})
+                self._quest_reward = data.get('quest_reward', {})
+                self._quest_task = data.get('quest_task', {})
 
                 self._log.debug("Cache loaded successfully.")
         except Exception as e:
@@ -58,6 +59,7 @@ class FileCache(Cache):
         data = {
             'mon_hist': self._mon_hist,
             'stop_hist': self._stop_hist,
+            'grunt_hist': self._grunt_hist,
             'egg_hist': self._egg_hist,
             'raid_hist': self._raid_hist,
             'gym_team': self._gym_team,
@@ -67,8 +69,8 @@ class FileCache(Cache):
             'cell_weather_id': self._cell_weather_id,
             'severity_id': self._severity_id,
             'day_or_night_id': self._day_or_night_id,
-            'reward': self._reward,
-            'task': self._task
+            'quest_reward': self._quest_reward,
+            'quest_task': self._quest_task
         }
         try:
             # Write to temporary file and then rename

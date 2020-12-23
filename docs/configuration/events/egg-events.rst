@@ -35,7 +35,11 @@ egg_lvl           The tier level of the egg.
 gym_name          The name of the gym. *
 gym_description   The description of the gym. *
 gym_image         The url to the image of the gym. *
+ex_eligible       True if the gym currently has an ex tag, False if not.
+is_exclusive      True if the egg is for an ex raid, False if not.
+park              The name of the park the gym is located in.
 team_id           The id of the team currently in control of the gym.
+team_emoji        The team color currently in control of the gym.
 team_name         The team currently in control of the gym.
 team_leader       The leader of the team currently in control of the gym.
 sponsor_id        The sponsor if of the gym. 0 if not sponsored.
@@ -82,7 +86,7 @@ hatch_time_left         Time remaining until the egg hatches.                   
 12h_hatch_time          Time when the egg will hatch, formatted in 12h.                 01:15:15pm
 24h_hatch_time          Time when the egg will hatch, formatted in 24h.                 13:15:15
 hatch_time_no_secs      Time remaining until the egg hatches without seconds.           1h 52m
-12_hatch_time_no_secs   Time when the egg will hatch, formatted in 12h without seconds. 01:15pm
+12h_hatch_time_no_secs   Time when the egg will hatch, formatted in 12h without seconds. 01:15pm
 24h_hatch_time_no_secs  Time when the egg will hatch, formatted in 24h without seconds. 13:15
 hatch_time_raw_hours    Hours only until the egg will hatch.                            1
 hatch_time_raw_minutes  Minutes only until the egg will hatch.                          52

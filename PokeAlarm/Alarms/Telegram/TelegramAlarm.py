@@ -38,7 +38,7 @@ class TelegramAlarm(Alarm):
         'stops': {
             'message': "*Someone has placed a lure on a Pokestop!*\n"
                        "Lure will expire at <24h_time> (<time_left>).",
-            'sticker_url': get_image_url("telegram/stop/ready.webp")
+            'sticker_url': get_image_url("telegram/stop/<lure_type_id_3>.webp")
         },
         'gyms': {
             'message': "*A Team <old_team> gym has fallen!*\n"
@@ -66,8 +66,14 @@ class TelegramAlarm(Alarm):
         },
         'quests': {
             'message': "*New quest for <reward>*\n"
-                       "<quest>",
-            'sticker_url': get_image_url("telegram/quest/<type_id>.webp")
+                       "<quest_task>",
+            'sticker_url': get_image_url("telegram/<quest_image>.webp")
+        },
+        'invasions': {
+            'message': "A Pokestop has been invaded by Team Rocket!\n"
+                       "Invasion will expire at <24h_time> (<time_left>).",
+            'sticker_url':
+                get_image_url("telegram/invasions/<type_id_3>.webp")
         }
     }
 
@@ -123,6 +129,8 @@ class TelegramAlarm(Alarm):
             'weather', settings, alert_defaults)
         self._quest_alert = self.create_alert_settings(
             'quests', settings, alert_defaults)
+        self._invasion_alert = self.create_alert_settings(
+            'invasions', settings, alert_defaults)
 
         # Reject leftover parameters
         for key in settings:
@@ -143,18 +151,18 @@ class TelegramAlarm(Alarm):
 
         alert = TelegramAlarm.Alert(
             bot_token=Alarm.pop_type(
-                settings, 'bot_token', unicode, default['bot_token']),
+                settings, 'bot_token', str, default['bot_token']),
             chat_id=Alarm.pop_type(
-                settings, 'chat_id', unicode, default['chat_id']),
+                settings, 'chat_id', str, default['chat_id']),
             sticker=Alarm.pop_type(
                 settings, 'sticker', utils.parse_bool, default['sticker']),
             sticker_url=Alarm.pop_type(
-                settings, 'sticker_url', unicode, default['sticker_url']),
+                settings, 'sticker_url', str, default['sticker_url']),
             sticker_notify=Alarm.pop_type(
                 settings, 'sticker_notify', utils.parse_bool,
                 default['sticker_notify']),
             message=Alarm.pop_type(
-                settings, 'message', unicode, default['message']),
+                settings, 'message', str, default['message']),
             message_notify=Alarm.pop_type(
                 settings, 'message_notify', utils.parse_bool,
                 default['message_notify']),
@@ -249,6 +257,9 @@ class TelegramAlarm(Alarm):
 
     def quest_alert(self, quest_dts):
         self.generic_alert(self._quest_alert, quest_dts)
+
+    def invasion_alert(self, invasion_dts):
+        self.generic_alert(self._invasion_alert, invasion_dts)
 
     def send_sticker(self, token, chat_id, sticker_url,
                      max_attempts=3, notify=False):

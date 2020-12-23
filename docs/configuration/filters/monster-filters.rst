@@ -43,7 +43,10 @@ Parameter         Description                                        Example
 ================= ================================================== ================================
 monsters          Array of allowed monsters, by id or name.          ``["Bulbasaur","2",3]``
 monsters_exclude  Array of excluded monsters, by id or name.         ``["Bulbasaur","2",3]``
-form_ids          Array of allowed form ids for a monster.           ``[0,"1"]``
+form_ids          Array of allowed form ids for the monster.         ``[0,"1"]``
+exclude_forms     Array of excluded forms, by id.                    ``[0,"1"]``
+costume_ids       Array of allowed costume ids for the monster.      ``[0,"1"]``
+exclude_costumes  Array of excluded costumes, by id.                 ``[0,"1"]``
 genders           Array of acceptable genders. Options: `"male",     ``["female"]``
                   "female", "neutral"`
 rarity            Array of allowed rarities.                         ``["common", "uncommon", 3``
@@ -83,6 +86,27 @@ max_weight     Maximum weight of the monster.                     ``250.0`` *
 sizes          Array of acceptable sizes. Options: `"tiny",       ``["tiny","big"]``
                "small", "normal", "large", "big"`
 ============== ================================================== ================================
+
+
+PvP / Trainer Battles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+    A more detailed explanation about the Trainer Battle calculations
+    and the resulting DTS can be found in Other -> PvP / Trainer Battles.
+    Trainer Battle calculations also require encounter information - see
+    the note above.
+
+=============== =============================================================== ==============================
+Parameter       Description                                                     Example
+=============== =============================================================== ==============================
+min_great       Minimum stat product percentage of the mon for great league     ``95``
+max_great       Maximum stat product percentage of the mon for great league     ``99``
+min_cp_great    Minimum resulting great league CP for the mon                   ``1300``
+min_ultra       Minimum stat product percentage of the mon for ultra league     ``95``
+max_ultra       Maximum stat product percentage of the mon for ultra league     ``99``
+min_cp_ultra    Minimum resulting ultra league CP for the mon                   ``1300``
+=============== =============================================================== ==============================
 
 
 Miscellaneous

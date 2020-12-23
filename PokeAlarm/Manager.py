@@ -13,17 +13,17 @@ from gevent.queue import Queue
 from gevent.event import Event
 
 # Local Imports
-import Alarms
-import Filters
-import Events
-from Cache import cache_factory
-from Geofence import load_geofence_file
-from Locale import Locale
-from LocationServices import GMaps
+from . import Alarms
+from . import Filters
+from . import Events
+from .Cache import cache_factory
+from .Geofence import load_geofence_file
+from .Locale import Locale
+from .LocationServices import GMaps
 from PokeAlarm import Unknown
 from PokeAlarm.Utilities.Logging import ContextFilter, setup_file_handler
 from PokeAlarm.Utilities.GenUtils import parse_bool
-from Utils import (get_earth_dist, get_path, get_cardinal_dir)
+from .Utils import (get_earth_dist, get_path, get_cardinal_dir)
 from . import config
 Rule = namedtuple('Rule', ['filter_names', 'alarm_names'])
 
@@ -74,6 +74,7 @@ class Manager(object):
         self._raids_enabled, self._raid_filters = False, OrderedDict()
         self._weather_enabled, self._weather_filters = False, OrderedDict()
         self._quest_enabled, self._quest_filters = False, OrderedDict()
+        self._grunts_enabled, self._grunt_filters = False, OrderedDict()
 
         # Create the Geofences to filter with from given file
         self.geofences = None
@@ -91,6 +92,7 @@ class Manager(object):
         self.__raid_rules = {}
         self.__weather_rules = {}
         self.__quest_rules = {}
+        self.__grunt_rules = {}
 
         # Initialize the queue and start the process
         self.__queue = Queue()
@@ -313,7 +315,7 @@ class Manager(object):
         self._log.debug("Quest notifications %s!",
                         "enabled" if self._quest_enabled else "disabled")
 
-    # Add new Weather Filter
+    # Add new Quest Filter
     def add_quest_filter(self, name, settings):
         if name in self._quest_filters:
             raise ValueError("Unable to add Quest Filter: Filter with the "
@@ -321,6 +323,21 @@ class Manager(object):
         f = Filters.QuestFilter(self, name, settings)
         self._quest_filters[name] = f
         self._log.debug("Quest filter '%s' set: %s", name, f)
+
+    # Enable/Disable Invasion notifications
+    def set_grunts_enabled(self, boolean):
+        self._grunts_enabled = parse_bool(boolean)
+        self._log.debug("Invasion notifications %s!",
+                        "enabled" if self._grunts_enabled else "disabled")
+
+    # Add new Invasion Filter
+    def add_grunt_filter(self, name, settings):
+        if name in self._grunt_filters:
+            raise ValueError("Unable to add Invasion Filter: Filter with the "
+                             "name {} already exists!".format(name))
+        f = Filters.GruntFilter(self, name, settings)
+        self._grunt_filters[name] = f
+        self._log.debug("Invasion filter '%s' set: %s", name, f)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -373,6 +390,24 @@ class Manager(object):
                                  "named {}!".format(alarm))
 
         self.__stop_rules[name] = Rule(filters, alarms)
+
+    # Add new Invasion Rule
+    def add_grunt_rule(self, name, filters, alarms):
+        if name in self.__grunt_rules:
+            raise ValueError("Unable to add Rule: Invasion Rule with the name "
+                             "{} already exists!".format(name))
+
+        for filt in filters:
+            if filt not in self._grunt_filters:
+                raise ValueError("Unable to create Rule: No Invasion Filter "
+                                 "named {}!".format(filt))
+
+        for alarm in alarms:
+            if alarm not in self._alarms:
+                raise ValueError("Unable to create Rule: No Alarm "
+                                 "named {}!".format(alarm))
+
+        self.__grunt_rules[name] = Rule(filters, alarms)
 
     # Add new Gym Rule
     def add_gym_rule(self, name, filters, alarms):
@@ -487,7 +522,7 @@ class Manager(object):
         if config['DEBUG'] is True:
             logging.getLogger().setLevel(logging.DEBUG)
 
-        # Conect the alarms and send the start up message
+        # Connect the alarms and send the start up message
         for alarm in self._alarms.values():
             alarm.connect()
             alarm.startup_message()
@@ -521,6 +556,8 @@ class Manager(object):
                     self.process_monster(event)
                 elif kind == Events.StopEvent:
                     self.process_stop(event)
+                elif kind == Events.GruntEvent:
+                    self.process_grunt(event)
                 elif kind == Events.GymEvent:
                     self.process_gym(event)
                 elif kind == Events.EggEvent:
@@ -623,11 +660,13 @@ class Manager(object):
         mon.name = self.__locale.get_pokemon_name(mon.monster_id)
 
         # Check if previously processed and update expiration
-        if self.__cache.monster_expiration(str(mon.enc_id) + str(mon.weight)) is not None:
+        if self.__cache.monster_expiration(str(mon.enc_id) +
+                                           str(mon.weight)) is not None:
             self._log.debug("{} monster was skipped because it was "
                             "previously processed.".format(mon.name))
             return
-        self.__cache.monster_expiration(str(mon.enc_id) + str(mon.weight), mon.disappear_time)
+        self.__cache.monster_expiration(str(mon.enc_id) + str(mon.weight),
+                                        mon.disappear_time)
 
         # Check the time remaining
         seconds_left = (mon.disappear_time
@@ -651,7 +690,7 @@ class Manager(object):
                 "default": Rule(self._mon_filters.keys(), self._alarms.keys())}
 
         rule_ct, alarm_ct = 0, 0
-        for r_name, rule in rules.iteritems():  # For all rules
+        for r_name, rule in rules.items():  # For all rules
             passed = self._check_filters(
                 mon, self._mon_filters, rule.filter_names)
             if passed:
@@ -682,11 +721,13 @@ class Manager(object):
             return
 
         # Check if previously processed and update expiration
-        if self.__cache.stop_expiration(stop.stop_id) is not None:
+        if self.__cache.stop_expiration(
+                str(stop.stop_id) + str(stop.lure_type_id)) is not None:
             self._log.debug("Stop {} was skipped because it was "
                             "previously processed.".format(stop.name))
             return
-        self.__cache.stop_expiration(stop.stop_id, stop.expiration)
+        self.__cache.stop_expiration(
+            str(stop.stop_id) + str(stop.lure_type_id), stop.expiration)
 
         # Check the time remaining
         seconds_left = (stop.expiration - datetime.utcnow()).total_seconds()
@@ -709,7 +750,7 @@ class Manager(object):
                 self._stop_filters.keys(), self._alarms.keys())}
 
         rule_ct, alarm_ct = 0, 0
-        for r_name, rule in rules.iteritems():  # For all rules
+        for r_name, rule in rules.items():  # For all rules
             passed = self._check_filters(
                 stop, self._stop_filters, rule.filter_names)
             if passed:
@@ -724,6 +765,68 @@ class Manager(object):
                 stop.name, rule_ct, alarm_ct)
         else:
             self._rule_log.info('Stop %s rejected by all rules.', stop.name)
+
+    def process_grunt(self, grunt):
+        # type: (Events.GruntEvent) -> None
+        """ Process a stop event and notify alarms if it passes. """
+
+        # Make sure that stops are enabled
+        if self._grunts_enabled is False:
+            self._log.debug("Invasion ignored: invasion notifications are "
+                            "disabled.")
+            return
+
+        # Check for lured
+        if grunt.expiration is None:
+            self._log.debug("Invasion ignored: stop was not invaded")
+            return
+
+        # Check if previously processed and update expiration
+        if self.__cache.grunt_expiration(
+                str(grunt.stop_id) + str(grunt.type_id)) is not None:
+            self._log.debug("Invasion {} was skipped because it was "
+                            "previously processed.".format(grunt.name))
+            return
+        self.__cache.grunt_expiration(
+            str(grunt.stop_id) + str(grunt.type_id), grunt.expiration)
+
+        # Check the time remaining
+        seconds_left = (grunt.expiration - datetime.utcnow()).total_seconds()
+        if seconds_left < self.__time_limit:
+            self._log.debug("Invasion {} was skipped because only {} seconds "
+                            "remained".format(grunt.name, seconds_left))
+            return
+
+        # Calculate distance and direction
+        if self.__location is not None:
+            grunt.distance = get_earth_dist(
+                [grunt.lat, grunt.lng], self.__location, self.__units)
+            grunt.direction = get_cardinal_dir(
+                [grunt.lat, grunt.lng], self.__location)
+
+        # Check for Rules
+        rules = self.__grunt_rules
+        if len(rules) == 0:  # If no rules, default to all
+            rules = {"default": Rule(
+                self._grunt_filters.keys(), self._alarms.keys())}
+
+        rule_ct, alarm_ct = 0, 0
+        for r_name, rule in rules.items():  # For all rules
+            passed = self._check_filters(
+                grunt, self._grunt_filters, rule.filter_names)
+            if passed:
+                rule_ct += 1
+                alarm_ct += len(rule.alarm_names)
+                self._notify_alarms(
+                    grunt, rule.alarm_names, 'invasion_alert')
+
+        if rule_ct > 0:
+            self._rule_log.info(
+                'Invasion %s passed %s rule(s) and triggered %s alarm(s).',
+                grunt.name, rule_ct, alarm_ct)
+        else:
+            self._rule_log.info('Invasion %s rejected by all rules.',
+                                grunt.name)
 
     def process_gym(self, gym):
         # type: (Events.GymEvent) -> None
@@ -770,7 +873,7 @@ class Manager(object):
                 self._gym_filters.keys(), self._alarms.keys())}
 
         rule_ct, alarm_ct = 0, 0
-        for r_name, rule in rules.iteritems():  # For all rules
+        for r_name, rule in rules.items():  # For all rules
             passed = self._check_filters(
                 gym, self._gym_filters, rule.filter_names)
             if passed:
@@ -833,7 +936,7 @@ class Manager(object):
                 "default": Rule(self._egg_filters.keys(), self._alarms.keys())}
 
         rule_ct, alarm_ct = 0, 0
-        for r_name, rule in rules.iteritems():  # For all rules
+        for r_name, rule in rules.items():  # For all rules
             passed = self._check_filters(
                 egg, self._egg_filters, rule.filter_names)
             if passed:
@@ -896,7 +999,7 @@ class Manager(object):
                 self._raid_filters.keys(), self._alarms.keys())}
 
         rule_ct, alarm_ct = 0, 0
-        for r_name, rule in rules.iteritems():  # For all rules
+        for r_name, rule in rules.items():  # For all rules
             passed = self._check_filters(
                 raid, self._raid_filters, rule.filter_names)
             if passed:
@@ -960,7 +1063,7 @@ class Manager(object):
                 self._weather_filters.keys(), self._alarms.keys())}
 
         rule_ct, alarm_ct = 0, 0
-        for r_name, rule in rules.iteritems():  # For all rules
+        for r_name, rule in rules.items():  # For all rules
             passed = self._check_filters(
                 weather, self._weather_filters, rule.filter_names)
             if passed:
@@ -982,12 +1085,11 @@ class Manager(object):
         """ Process a quest event and notify alarms if it passes. """
 
         # Set the name for this event so we can log rejects better
-        quest.name = quest.stop_name + '-' + quest.reward
+        quest.name = quest.stop_id
 
         # Make sure that quest changes are enabled
         if self._quest_enabled is False:
-            self._log.debug("Quest ignored: quest "
-                            "notifications are disabled.")
+            self._log.debug("Quest ignored: quest notifications are disabled.")
             return
 
         # Calculate distance and direction
@@ -997,22 +1099,27 @@ class Manager(object):
             quest.direction = get_cardinal_dir(
                 [quest.lat, quest.lng], self.__location)
 
-        # Skip if previously processed
-        if self.__cache.quest_expiration(quest.stop_id) is not None:
+        # Store a copy of cache info
+        previous_modified = self.__cache.quest_expiration(quest.stop_id)
+
+        # Check if previously processed
+        if self.__cache.quest_expiration(quest.stop_id, quest.last_modified)\
+                == previous_modified:
             self._log.debug("Quest {} was skipped because it was "
                             "previously processed.".format(quest.name))
             return
-        self.__cache.quest_expiration(quest.stop_id, quest.expire_time)
 
         # Check against previous copy from cache
-        previous_reward, previous_task = \
+        previous_reward, previous_task, last_modified = \
             self.__cache.quest_reward(quest.stop_id)
-        if quest.reward == previous_reward and quest.quest == previous_task:
+        if quest.reward_type_raw == previous_reward \
+                and quest.quest_type_raw == previous_task:
             self._log.debug("Quest ignored: Reward previously alerted!")
             return
 
         # Update cache info
-        self.__cache.quest_reward(quest.stop_id, quest.reward, quest.quest)
+        self.__cache.quest_reward(quest.stop_id, quest.reward_type_raw,
+                                  quest.quest_type_raw)
 
         # Check for Rules
         rules = self.__quest_rules
@@ -1021,7 +1128,7 @@ class Manager(object):
                 self._quest_filters.keys(), self._alarms.keys())}
 
         rule_ct, alarm_ct = 0, 0
-        for r_name, rule in rules.iteritems():  # For all rules
+        for r_name, rule in rules.items():  # For all rules
             passed = self._check_filters(
                 quest, self._quest_filters, rule.filter_names)
             if passed:
@@ -1046,7 +1153,7 @@ class Manager(object):
             return True
         targets = f.geofences
         if len(targets) == 1 and "all" in targets:
-            targets = self.geofences.iterkeys()
+            targets = self.geofences.keys()
         for name in targets:
             gf = self.geofences.get(name)
             if not gf:  # gf doesn't exist

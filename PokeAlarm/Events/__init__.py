@@ -1,14 +1,15 @@
 import logging
 import traceback
 
-from BaseEvent import BaseEvent  # noqa F401
-from MonEvent import MonEvent
-from StopEvent import StopEvent
-from GymEvent import GymEvent
-from EggEvent import EggEvent
-from RaidEvent import RaidEvent
-from WeatherEvent import WeatherEvent
-from QuestEvent import QuestEvent
+from .BaseEvent import BaseEvent  # noqa F401
+from .MonEvent import MonEvent
+from .StopEvent import StopEvent
+from .GymEvent import GymEvent
+from .EggEvent import EggEvent
+from .RaidEvent import RaidEvent
+from .WeatherEvent import WeatherEvent
+from .QuestEvent import QuestEvent
+from .GruntEvent import GruntEvent
 
 log = logging.getLogger('Events')
 
@@ -20,8 +21,14 @@ def event_factory(data):
         message = data['message']
         if kind == 'pokemon':
             return MonEvent(message)
-        elif kind == 'pokestop':
-            return StopEvent(message)
+        elif kind == 'pokestop' or kind == 'invasion':
+            webhook_types = []
+            if message.get('incident_expiration',
+                           message.get('incident_expire_timestamp', 0)) != 0:
+                webhook_types.append(GruntEvent(message))
+            if message.get('lure_expiration', 0) != 0:
+                webhook_types.append(StopEvent(message))
+            return webhook_types
         elif kind == 'gym' or kind == 'gym_details':
             return GymEvent(message)
         elif kind == 'raid' and not message.get('pokemon_id'):

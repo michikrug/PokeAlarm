@@ -52,7 +52,11 @@ class TwitterAlarm(Alarm):
                       " to <weather>!"
         },
         'quests': {
-            'status': "*New quest for <reward>*\n<quest>\n<gmaps>",
+            'status': "*New quest for <reward>*\n<quest_task>\n<gmaps>",
+        },
+        "invasions": {
+            'status': "A Pokestop has been invaded by Team Rocket!\n"
+                      "Invasion will expire at <24h_time> (<time_left>).",
         }
     }
 
@@ -90,6 +94,8 @@ class TwitterAlarm(Alarm):
             settings.pop('weather', {}), self._defaults['weather'])
         self.__quest = self.create_alert_settings(
             settings.pop('quests', {}), self._defaults['quests'])
+        self.__invasion = self.create_alert_settings(
+            settings.pop('invasions', {}), self._defaults['invasions'])
 
         # Warn user about leftover parameters
         reject_leftover_parameters(settings, "'Alarm level in Twitter alarm.")
@@ -136,7 +142,7 @@ class TwitterAlarm(Alarm):
                 word = word[:word_len]  # truncate it
             limit -= word_len + 1  # word + space
             msg += " " + word
-        print msg
+        print(msg)
         return msg[1:]  # Strip the space
 
     def send_alert(self, alert, info):
@@ -172,6 +178,10 @@ class TwitterAlarm(Alarm):
     # Trigger an alert based on weather webhook
     def quest_alert(self, quest_info):
         self.send_alert(self.__quest, quest_info)
+
+    # Trigger an alert based on invasion pokestop webhook
+    def invasion_alert(self, invasion_info):
+        self.send_alert(self.__invasion, invasion_info)
 
     # Send out a tweet with the given status
     def send_tweet(self, status):

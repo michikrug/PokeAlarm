@@ -36,6 +36,7 @@ mon_id_3            ID of the monster's species, padded to 3 digits.
 form                Form name of the monster.
 form_or_empty       Form name of the monster, or empty string if unknown.
 form_id             Form ID for the monster.
+form_id_2           Form ID of the monster, padded to 2 digits.
 form_id_3           Form ID of the monster, padded to 3 digits.
 type1               Name of the monster's primary type.
 type1_or_empty      Name of the monster's primary type, or empty string
@@ -121,6 +122,38 @@ atk_grade           Offensive grade of the monster's moveset.
 def_grade           Defensive grade of the monster's moveset.
 =================== =========================================================
 
+PvP / Trainer Battles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+    The DTS in this section require your scanner to encounter the target
+    monsters to get the proper information. This typically requires special
+    settings and accounts - see the documentation for your scanner for
+    specifics.
+
+.. note::
+    A more detailed explanation about the Trainer Battle calculations
+    and the resulting DTS can be found in Other -> PvP / Trainer Battles.
+
+=================== =========================================================
+DTS                 Description
+=================== =========================================================
+great_mon_id        The ID of the monster or its evolution that reaches the highest stat product in great league
+great_product       Highest stat product percentage the mon or its evolution can reach in great league
+great_mon_name      Name of the mon or its evolution that reaches the highest stat product in great league
+great_cp            CP at the highest possible level for great league for the mon or its evolution
+great_level         The level at which the mon will reach the highest possible CP for great league
+great_url           Individual link to gostadium.club to further analyze the mon or its evolution in great league
+great_pvpoke        Individual link to pvpoke.com to further analyze the mon or its evolution in great league
+ultra_mon_id        The ID of the monster or its evolution that reaches the highest stat product in ultra league
+ultra_product       Highest stat product percentage the mon or its evolution can reach in ultra league
+ultra_mon_name      Name of the mon or its evolution that reaches the highest stat product in ultra league
+ultra_cp            CP at the highest possible level for ultra league for the mon or its evolution
+ultra_level         The level at which the mon will reach the highest possible CP for ultra league
+ultra_url           Individual link to gostadium.club to further analyze the mon or its evolution in ultra league
+ultra_pvpoke        Individual link to pvpoke.com to further analyze the mon or its evolution in ultra league
+=================== =========================================================
 
 Cosmetic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -138,7 +171,8 @@ DTS                 Description
 costume             Costume of the monster.
 costume_or_empty    Costume of the monster, or an empty string if unknown.
 costume_id          Costume ID of the monster.
-costume_id_3        Costume ID of the monster, formatted to there digits.
+costume_id_2        Costume ID of the monster, padded to 2 digits.
+costume_id_3        Costume ID of the monster, padded to 3 digits.
 gender              Gender of the monster, represented as a single character.
 height              Height of the monster.
 height_0            Height of the monster, rounded to the nearest integer.
@@ -221,11 +255,14 @@ boosted_or_empty         Return `boosted` if monster is boosted, or empty
 Miscellaneous
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-=================== ============================================================
-DTS                 Description
-=================== ============================================================
-encounter_id        The encounter id. Unique per monster spawn.
-spawn_start         Estimated time that the monster spawn starts.
-spawn_end           Estimated time that the monster spawn ends.
-spawn_verified      Whether this spawn times have been verified.
-=================== ============================================================
+=============================== ==============================================================
+DTS                             Description
+=============================== ==============================================================
+encounter_id                    The encounter id. Unique per monster spawn.
+spawn_start                     Estimated time that the monster spawn starts.
+spawn_end                       Estimated time that the monster spawn ends.
+spawn_verified                  Whether this spawn times have been verified.
+spawn_verified_emoji            Return spawn verified emoji for unknown, verified, unverified.
+spawn_verified_emoji_or_empty   Return spawn verified emoji for verified or empty string.
+spawn_unverified_emoji_or_empty Return spawn verified emoji for unverified or empty string.
+=============================== ==============================================================

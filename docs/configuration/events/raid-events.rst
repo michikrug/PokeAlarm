@@ -39,6 +39,7 @@ raid_lvl          The tier level of the raid.
 form              Form name of the monster.
 form_or_empty     Form name of the monster, or empty string if unknown.
 form_id           Form ID for the monster.
+form_id_2         Form ID of the monster, padded to 2 digits.
 form_id_3         Form ID of the monster, padded to 3 digits.
 min_cp            Minimum potential CP of the monster.
 max_cp            Maximum potential CP of the monster.
@@ -59,6 +60,7 @@ gym_name          The name of the gym. *
 gym_description   The description of the gym. *
 gym_image         The url to the image of the gym. *
 team_id           The id of the team currently in control of the gym.
+team_emoji        The team color currently in control of the gym.
 team_name         The team currently in control of the gym.
 team_leader       The leader of the team currently in control of the gym.
 sponsor_id        The sponsor if of the gym. 0 if not sponsored.
@@ -107,6 +109,7 @@ DTS                 Description
 costume            Costume name of the monster.
 costume_or_empty   Costume name of the monster, or empty string if unknown.
 costume_id         Costume ID for the monster.
+costume_id_2       Costume ID of the monster, padded to 2 digits.
 costume_id_3       Costume ID of the monster, padded to 3 digits.
 gender             Gender of the monster, represented as a single character.
 ================== =========================================================
